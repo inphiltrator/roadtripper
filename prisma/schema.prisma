@@ -1,0 +1,124 @@
+// Southwest USA Roadtripper Prisma Schema
+// Regional optimization for CA, NV, UT, AZ
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String   // Always hashed
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  trips     Trip[]
+  favorites POI[]    @relation("UserFavorites")
+}
+
+model Trip {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  owner       User       @relation(fields: [ownerId], references: [id])
+  ownerId     String
+  waypoints   Waypoint[]
+  
+  // Regional bounds validation for Southwest USA
+  minLat      Float?     @default(32.5)  // Southwest corner
+  maxLat      Float?     @default(42.0)  // Northeast corner
+  minLng      Float?     @default(-124.5) // Southwest corner
+  maxLng      Float?     @default(-109.0) // Northeast corner
+  
+  // Trip metadata
+  totalDistance Float?   // in kilometers
+  estimatedTime Int?     // in minutes
+  seasonalNotes String?  // Desert warnings, snow conditions
+}
+
+model Waypoint {
+  id          Int      @id @default(autoincrement())
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId      String
+  order       Int      // Order in the trip
+  name        String
+  latitude    Float
+  longitude   Float
+  notes       String?
+  arrival     DateTime?
+  departure   DateTime?
+  
+  // POI association
+  poi         POI?     @relation(fields: [poiId], references: [id])
+  poiId       String?
+}
+
+model POI {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  latitude    Float
+  longitude   Float
+  category    POICategory @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  
+  // Regional specific fields
+  state       String     // CA, NV, UT, AZ
+  isNationalPark Boolean @default(false)
+  isRoute66   Boolean    @default(false)
+  isDesertLocation Boolean @default(false)
+  
+  // Metadata
+  website     String?
+  phone       String?
+  openingHours String?
+  seasonalWarnings String? // Heat warnings, snow conditions
+  
+  // Relations
+  waypoints   Waypoint[]
+  favoritedBy User[]     @relation("UserFavorites")
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model POICategory {
+  id          String @id @default(cuid())
+  name        String @unique
+  description String?
+  icon        String? // Icon identifier for UI
+  color       String? // Color for map markers
+  
+  pois        POI[]
+  
+  createdAt   DateTime @default(now())
+}
+
+model Route {
+  id          String   @id @default(cuid())
+  name        String   // e.g., "Route 66", "Pacific Coast Highway"
+  description String?
+  
+  // GeoJSON LineString
+  geometry    String   // JSON string of route geometry
+  
+  // Route metadata
+  totalDistance Float  // in kilometers
+  difficulty    String // easy, moderate, challenging
+  scenicRating  Int    @default(1) // 1-5 stars
+  
+  // Regional flags
+  isHistoricRoute Boolean @default(false)
+  hasDesertSections Boolean @default(false)
+  hasMountainPasses Boolean @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

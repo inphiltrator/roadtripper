@@ -1,50 +1,38 @@
-# Southwest USA Roadtripper
+# sv
 
-Ein selbst gehosteter Roadtrip-Planer speziell für die Southwest USA Region (Nevada, Kalifornien, Utah, Arizona).
+Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
-## Projektstruktur
+## Creating a project
 
-```
-roadtripper/
-├── docs/                          # Projektdokumentation
-│   ├── ablaufplan-roadtripper.md   # Detaillierter Entwicklungsplan
-│   ├── agent-guide.md              # Agent-spezifische Anweisungen
-│   └── playbook.md                 # Technische Architektur-Blaupause
-├── data/                           # Persistente Daten
-│   ├── photon_data/                # Geocoding-Datenbank (wird gefüllt)
-│   ├── osm_downloads/              # OSM-Daten (optional)
-│   └── roadtripper.db              # SQLite-Datenbank (wird erstellt)
-├── src/                            # SvelteKit-Anwendung
-├── docker-compose.yml              # Service-Orchestrierung
-└── README.md                       # Diese Datei
+If you're seeing this, you've probably already done this step. Congrats!
+
+```sh
+# create a new project in the current directory
+npx sv create
+
+# create a new project in my-app
+npx sv create my-app
 ```
 
-## Erste Schritte
+## Developing
 
-1. **MCP-Server konfigurieren** (siehe docs/ablaufplan-roadtripper.md)
-2. **MapBox API-Key besorgen** (siehe data/mapbox-setup.md)
-3. **Environment Variables setzen**: `cp .env.example .env`
-4. **Entwicklung beginnen** mit Phase 1 aus dem Ablaufplan
+Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
 
-## Geografischer Fokus
+```sh
+npm run dev
 
-- **Staaten:** Nevada, Kalifornien, Utah, Arizona  
-- **Bounds:** [-124.5, 32.5] bis [-109.0, 42.0]
-- **Geocoding:** MapBox API (100k requests/month kostenlos)
+# or start the server and open the app in a new browser tab
+npm run dev -- --open
+```
 
-## Hardware-Optimiert
+## Building
 
-- MacBook Air M2 mit 16GB RAM
-- Externe APIs für ressourcenintensive Tasks
-- Regional begrenzte Features
-- 0GB lokaler Speicher für Geocoding
+To create a production version of your app:
 
-## Technologie-Stack
+```sh
+npm run build
+```
 
-- **Frontend:** SvelteKit + TypeScript
-- **UI:** Tailwind CSS (Liquid Glass Design)
-- **Karten:** MapLibre GL JS + Stadia Maps
-- **Geocoding:** MapBox Geocoding API
-- **Routing:** OpenRouteService API
-- **Datenbank:** SQLite + Prisma
-- **Development:** MCP-Server (Memory, Filesystem, GitHub, Playwright)
+You can preview the production build with `npm run preview`.
+
+> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
