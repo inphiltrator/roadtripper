@@ -7,10 +7,12 @@ export interface LatLng {
 
 export class EnhancedPOIService {
   private overpassEndpoint: string;
+  private southwestSpecialCategories: Record<string, string[]>;
 
   constructor(overpassEndpoint?: string) {
     this.overpassEndpoint = overpassEndpoint || 'https://overpass.private.coffee/api/interpreter';
-    console.log('🗺️ Enhanced POI Service initialized with Overpass API');
+    this.initializeSouthwestCategories();
+    console.log('🗺️ Enhanced POI Service initialized with Southwest USA specializations');
   }
 
   async discoverPOIs(
@@ -258,6 +260,138 @@ out skel qt;`;
     }
     
     return undefined;
+  }
+
+  /**
+   * Search POIs with fuzzy matching for Spanish names and Southwest locations
+   */
+  async searchPOIsFuzzy(query: string, location?: LatLng, radius: number = 50000): Promise<POI[]> {
+    // Normalize query for better matching
+    const normalizedQuery = this.normalizeSpanishQuery(query);
+    
+    try {
+      const searchQuery = this.buildFuzzySearchQuery(normalizedQuery, location, radius);
+      
+      const response = await fetch(this.overpassEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `data=${encodeURIComponent(searchQuery)}`
+      });
+
+      if (!response.ok) {
+        throw new Error(`Overpass API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return this.processOverpassResponse(data);
+    } catch (error) {
+      console.error('Fuzzy POI search failed:', error);
+      return this.getFuzzySampleResults(query);
+    }
+  }
+
+  /**
+   * Get Southwest-specific POI categories
+   */
+  getSouthwestCategories(): Record<string, { name: string; subcategories: string[] }> {
+    return {
+      national_parks: {
+        name: 'National Parks',
+        subcategories: ['Grand Canyon', 'Zion', 'Bryce Canyon', 'Death Valley', 'Joshua Tree', 'Yosemite']
+      },
+      ghost_towns: {
+        name: 'Ghost Towns',
+        subcategories: ['Calico', 'Bodie', 'Goldfield', 'Rhyolite', 'Jerome']
+      },
+      scenic_viewpoints: {
+        name: 'Scenic Viewpoints',
+        subcategories: ['Valley of Fire', 'Antelope Canyon', 'Horseshoe Bend', 'Sedona Red Rocks']
+      },
+      route66_attractions: {
+        name: 'Route 66 Attractions',
+        subcategories: ['Santa Monica Pier', 'Seligman', 'Wigwam Motel', 'Petrified Forest']
+      },
+      desert_oases: {
+        name: 'Desert Oases',
+        subcategories: ['Palm Springs', 'Twentynine Palms', 'Borrego Springs']
+      },
+      historic_missions: {
+        name: 'Historic Missions',
+        subcategories: ['San Juan Capistrano', 'San Carlos Borromeo', 'Santa Barbara Mission']
+      }
+    };
+  }
+
+  private initializeSouthwestCategories(): void {
+    this.southwestSpecialCategories = {
+      'Spanish Names': [
+        'San', 'Santa', 'Los', 'Las', 'El', 'La', 'Rio', 'Sierra', 'Valle', 'Mesa', 'Pueblo'
+      ],
+      'Desert Features': [
+        'Desert', 'Valley', 'Canyon', 'Mesa', 'Butte', 'Wash', 'Springs', 'Oasis'
+      ],
+      'Route 66 Keywords': [
+        'Route 66', 'Historic Route', 'Mother Road', 'Main Street America'
+      ],
+      'National Park Features': [
+        'National Park', 'Visitor Center', 'Scenic Drive', 'Overlook', 'Trail Head'
+      ]
+    };
+  }
+
+  private normalizeSpanishQuery(query: string): string {
+    // Common Spanish-English translations for Southwest locations
+    const translations: Record<string, string> = {
+      'muerte': 'death',
+      'valle': 'valley',
+      'sierra': 'mountain',
+      'rio': 'river',
+      'lago': 'lake',
+      'montaña': 'mountain',
+      'desierto': 'desert',
+      'ciudad': 'city',
+      'pueblo': 'town'
+    };
+
+    let normalized = query.toLowerCase();
+    Object.entries(translations).forEach(([spanish, english]) => {
+      normalized = normalized.replace(new RegExp(spanish, 'g'), english);
+    });
+
+    return normalized;
+  }
+
+  private buildFuzzySearchQuery(query: string, location?: LatLng, radius: number = 50000): string {
+    const locationFilter = location 
+      ? `(around:${radius},${location.lat},${location.lng})` 
+      : '(area:3602385516)';
+    
+    // Build fuzzy search with regex patterns
+    const queryPattern = query.split(' ').map(word => `.*${word}.*`).join('|');
+    
+    return `[out:json][timeout:25];
+(
+  node["name"~"${queryPattern}",i]${locationFilter};
+  way["name"~"${queryPattern}",i]${locationFilter};
+  relation["name"~"${queryPattern}",i]${locationFilter};
+);
+out body;
+>;
+out skel qt;`;
+  }
+
+  private getFuzzySampleResults(query: string): POI[] {
+    const allSamplePOIs = this.getSampleSouthwestPOIs({ lat: 36.0, lng: -115.0 }, 500000, []);
+    
+    // Simple fuzzy matching
+    const queryLower = query.toLowerCase();
+    return allSamplePOIs.filter(poi => 
+      poi.name.toLowerCase().includes(queryLower) ||
+      poi.description?.toLowerCase().includes(queryLower) ||
+      poi.tags?.some(tag => tag.toLowerCase().includes(queryLower))
+    );
   }
 
   private getSampleSouthwestPOIs(location: LatLng, radius: number, categories: POI['category'][]): POI[] {
