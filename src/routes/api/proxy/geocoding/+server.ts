@@ -9,4 +9,112 @@ const DEFAULT_SOUTHWEST_BBOX = '-124.5,32.5,-109.0,42.0';
 function isInSouthwestRegion(lat: number, lng: number): boolean {
   return lat >= 32.5 && lat <= 42.0 && 
          lng >= -124.5 && lng <= -109.0;
-}\n\nexport const GET: RequestHandler = async ({ url }) => {\n  const query = url.searchParams.get('q');\n  \n  if (!query) {\n    return json({ error: 'Query parameter \"q\" is required' }, { status: 400 });\n  }\n\n  if (!MAPBOX_PUBLIC_TOKEN) {\n    return json({ error: 'MapBox API token not configured' }, { status: 500 });\n  }\n\n  try {\n    // Use regional bounds for Southwest USA\n    const bbox = SOUTHWEST_BBOX || DEFAULT_SOUTHWEST_BBOX;\n    \n    const fetchUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?` +\n      `access_token=${MAPBOX_PUBLIC_TOKEN}&` +\n      `country=us&` +\n      `bbox=${bbox}&` +\n      `limit=5`;\n\n    const response = await fetch(fetchUrl);\n    \n    if (!response.ok) {\n      throw new Error(`MapBox API error: ${response.status} ${response.statusText}`);\n    }\n    \n    const data = await response.json();\n    \n    // Additional regional filtering on the results\n    if (data.features) {\n      data.features = data.features.filter((feature: any) => {\n        const [lng, lat] = feature.geometry.coordinates;\n        return isInSouthwestRegion(lat, lng);\n      });\n      \n      // Add regional context to each result\n      data.features = data.features.map((feature: any) => {\n        const [lng, lat] = feature.geometry.coordinates;\n        const state = getStateFromCoordinates(lat, lng);\n        \n        return {\n          ...feature,\n          properties: {\n            ...feature.properties,\n            region: 'Southwest USA',\n            state: state,\n            isNationalPark: isNationalParkArea(feature.place_name),\n            isRoute66: isRoute66Related(feature.place_name)\n          }\n        };\n      });\n    }\n\n    return json(data);\n    \n  } catch (error) {\n    console.error('Geocoding API Error:', error);\n    return json(\n      { error: 'Failed to fetch geocoding results' }, \n      { status: 500 }\n    );\n  }\n};\n\n// Helper function to determine state from coordinates\nfunction getStateFromCoordinates(lat: number, lng: number): string {\n  // Approximate state boundaries for Southwest USA\n  if (lng >= -124.5 && lng <= -114.0) {\n    return lat >= 36.0 ? 'CA' : 'CA'; // California spans both\n  }\n  if (lng >= -120.0 && lng <= -114.0 && lat >= 35.0 && lat <= 42.0) {\n    return 'NV'; // Nevada\n  }\n  if (lng >= -114.0 && lng <= -109.0 && lat >= 37.0 && lat <= 42.0) {\n    return 'UT'; // Utah\n  }\n  if (lng >= -114.5 && lng <= -109.0 && lat >= 31.3 && lat <= 37.0) {\n    return 'AZ'; // Arizona\n  }\n  return 'CA'; // Default fallback\n}\n\n// Helper function to detect National Park areas\nfunction isNationalParkArea(placeName: string): boolean {\n  const parkKeywords = [\n    'national park', 'yosemite', 'grand canyon', 'zion', 'death valley',\n    'joshua tree', 'sequoia', 'kings canyon', 'arches', 'canyonlands',\n    'bryce canyon', 'capitol reef'\n  ];\n  \n  return parkKeywords.some(keyword => \n    placeName.toLowerCase().includes(keyword)\n  );\n}\n\n// Helper function to detect Route 66 related locations\nfunction isRoute66Related(placeName: string): boolean {\n  const route66Keywords = [\n    'route 66', 'historic route', 'mother road', 'barstow', 'needles',\n    'kingman', 'seligman', 'flagstaff', 'williams'\n  ];\n  \n  return route66Keywords.some(keyword => \n    placeName.toLowerCase().includes(keyword)\n  );\n}
+}
+
+export const GET: RequestHandler = async ({ url }) => {
+  const query = url.searchParams.get('q');
+  
+  if (!query) {
+    return json({ error: 'Query parameter "q" is required' }, { status: 400 });
+  }
+
+  if (!MAPBOX_PUBLIC_TOKEN) {
+    return json({ error: 'MapBox API token not configured' }, { status: 500 });
+  }
+
+  try {
+    // Use regional bounds for Southwest USA
+    const bbox = SOUTHWEST_BBOX || DEFAULT_SOUTHWEST_BBOX;
+    
+    const fetchUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?` +
+      `access_token=${MAPBOX_PUBLIC_TOKEN}&` +
+      `country=us&` +
+      `bbox=${bbox}&` +
+      `limit=5`;
+
+    const response = await fetch(fetchUrl);
+    
+    if (!response.ok) {
+      throw new Error(`MapBox API error: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    // Additional regional filtering on the results
+    if (data.features) {
+      data.features = data.features.filter((feature: any) => {
+        const [lng, lat] = feature.geometry.coordinates;
+        return isInSouthwestRegion(lat, lng);
+      });
+      
+      // Add regional context to each result
+      data.features = data.features.map((feature: any) => {
+        const [lng, lat] = feature.geometry.coordinates;
+        const state = getStateFromCoordinates(lat, lng);
+        
+        return {
+          ...feature,
+          properties: {
+            ...feature.properties,
+            region: 'Southwest USA',
+            state: state,
+            isNationalPark: isNationalParkArea(feature.place_name),
+            isRoute66: isRoute66Related(feature.place_name)
+          }
+        };
+      });
+    }
+
+    return json(data);
+    
+  } catch (error) {
+    console.error('Geocoding API Error:', error);
+    return json(
+      { error: 'Failed to fetch geocoding results' }, 
+      { status: 500 }
+    );
+  }
+};
+
+// Helper function to determine state from coordinates
+function getStateFromCoordinates(lat: number, lng: number): string {
+  // Approximate state boundaries for Southwest USA
+  if (lng >= -124.5 && lng <= -114.0) {
+    return lat >= 36.0 ? 'CA' : 'CA'; // California spans both
+  }
+  if (lng >= -120.0 && lng <= -114.0 && lat >= 35.0 && lat <= 42.0) {
+    return 'NV'; // Nevada
+  }
+  if (lng >= -114.0 && lng <= -109.0 && lat >= 37.0 && lat <= 42.0) {
+    return 'UT'; // Utah
+  }
+  if (lng >= -114.5 && lng <= -109.0 && lat >= 31.3 && lat <= 37.0) {
+    return 'AZ'; // Arizona
+  }
+  return 'CA'; // Default fallback
+}
+
+// Helper function to detect National Park areas
+function isNationalParkArea(placeName: string): boolean {
+  const parkKeywords = [
+    'national park', 'yosemite', 'grand canyon', 'zion', 'death valley',
+    'joshua tree', 'sequoia', 'kings canyon', 'arches', 'canyonlands',
+    'bryce canyon', 'capitol reef'
+  ];
+  
+  return parkKeywords.some(keyword => 
+    placeName.toLowerCase().includes(keyword)
+  );
+}
+
+// Helper function to detect Route 66 related locations
+function isRoute66Related(placeName: string): boolean {
+  const route66Keywords = [
+    'route 66', 'historic route', 'mother road', 'barstow', 'needles',
+    'kingman', 'seligman', 'flagstaff', 'williams'
+  ];
+  
+  return route66Keywords.some(keyword => 
+    placeName.toLowerCase().includes(keyword)
+  );
+}

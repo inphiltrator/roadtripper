@@ -74,20 +74,28 @@ export function getStateFromCoordinates(lat: number, lng: number): keyof typeof 
   
   // Simplified state boundary detection
   // In production, you would use more precise polygon data
-  if (lng >= -124.5 && lng <= -114.0) {
-    return 'CA'; // California (rough approximation)
-  }
+  
+  // Nevada: Las Vegas area and central Nevada
   if (lng >= -120.0 && lng <= -114.0 && lat >= 35.0 && lat <= 42.0) {
     return 'NV'; // Nevada
   }
+  
+  // Utah: Eastern part of the region
   if (lng >= -114.0 && lng <= -109.0 && lat >= 37.0 && lat <= 42.0) {
     return 'UT'; // Utah
   }
+  
+  // Arizona: Southern central part
   if (lng >= -114.5 && lng <= -109.0 && lat >= 31.3 && lat <= 37.0) {
     return 'AZ'; // Arizona
   }
   
-  return 'CA'; // Default fallback
+  // California: Western coastal area and everything else
+  if (lng >= -124.5 && lng <= -114.0) {
+    return 'CA'; // California
+  }
+  
+  return 'CA'; // Default fallback for edge cases
 }
 
 // POI category detection
