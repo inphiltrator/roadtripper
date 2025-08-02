@@ -6,111 +6,262 @@
 @layer components {
   /* Glass Panel Base */
   .glass-panel {
-    @apply bg-white/10 backdrop-blur-lg ring-1 ring-white/20 shadow-glass rounded-2xl;
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(255, 255, 255, 0.05);
+    border-radius: 1rem;
   }
   
   .glass-panel-dark {
-    @apply bg-black/10 backdrop-blur-lg ring-1 ring-black/20 shadow-glass-lg rounded-2xl;
+    background-color: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    box-shadow: 0 25px 50px -12px rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
   }
 
   /* Glass Navigation */
   .glass-nav {
-    @apply glass-panel px-6 py-4 border-b border-white/10;
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(255, 255, 255, 0.05);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   /* Glass Cards */
   .glass-card {
-    @apply glass-panel p-6 hover:bg-white/15 transition-all duration-300;
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(255, 255, 255, 0.05);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: all 0.3s;
+  }
+  .glass-card:hover {
+    background-color: rgba(255, 255, 255, 0.15);
   }
   
   .glass-card-interactive {
-    @apply glass-card hover:scale-[1.02] hover:shadow-glass-lg cursor-pointer;
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(255, 255, 255, 0.05);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .glass-card-interactive:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: scale(1.02);
+    box-shadow: 0 25px 50px -12px rgba(255, 255, 255, 0.08);
   }
 
   /* Glass Buttons */
   .btn-glass {
-    @apply px-4 py-2 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30;
-    @apply hover:bg-white/30 active:bg-white/40 transition-all duration-200;
-    @apply text-white font-medium shadow-sm;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+  }
+  .btn-glass:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+  .btn-glass:active {
+    background-color: rgba(255, 255, 255, 0.4);
   }
   
   .btn-glass-primary {
-    @apply btn-glass bg-desert-500/80 border-desert-400/50 text-white;
-    @apply hover:bg-desert-400/90 active:bg-desert-600/90;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    backdrop-filter: blur(4px);
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+    background-color: rgba(238, 124, 21, 0.8);
+    border: 1px solid rgba(244, 153, 50, 0.5);
+  }
+  .btn-glass-primary:hover {
+    background-color: rgba(244, 153, 50, 0.9);
+  }
+  .btn-glass-primary:active {
+    background-color: rgba(217, 97, 10, 0.9);
   }
   
   .btn-glass-secondary {
-    @apply btn-glass bg-canyon-500/80 border-canyon-400/50 text-white;
-    @apply hover:bg-canyon-400/90 active:bg-canyon-600/90;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    backdrop-filter: blur(4px);
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+    background-color: rgba(239, 68, 68, 0.8);
+    border: 1px solid rgba(248, 113, 113, 0.5);
+  }
+  .btn-glass-secondary:hover {
+    background-color: rgba(248, 113, 113, 0.9);
+  }
+  .btn-glass-secondary:active {
+    background-color: rgba(220, 38, 38, 0.9);
   }
 
   /* Glass Input Fields */
   .input-glass {
-    @apply w-full px-4 py-3 rounded-lg bg-white/10 backdrop-blur-sm;
-    @apply border border-white/20 placeholder-white/60 text-white;
-    @apply focus:bg-white/15 focus:border-white/40 focus:outline-none;
-    @apply transition-all duration-200;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    transition: all 0.2s;
+  }
+  .input-glass::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+  }
+  .input-glass:focus {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    outline: none;
   }
 
   /* Regional Desert Gradients */
   .gradient-desert {
-    @apply bg-gradient-to-br from-desert-400 via-sunset-500 to-canyon-500;
+    background: linear-gradient(to bottom right, #f19432, #f97316, #ef4444);
   }
   
   .gradient-desert-subtle {
-    @apply bg-gradient-to-br from-desert-50 via-sunset-50 to-canyon-50;
+    background: linear-gradient(to bottom right, #fef7ed, #fff7ed, #fef2f2);
   }
 
   /* Map Container Styles */
   .map-container {
-    @apply relative h-full w-full rounded-2xl overflow-hidden ring-1 ring-white/20;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
   }
   
   .map-overlay {
-    @apply absolute top-4 left-4 z-10 glass-panel p-4 max-w-sm;
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    z-index: 10;
+    padding: 1rem;
+    max-width: 24rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(255, 255, 255, 0.05);
+    border-radius: 1rem;
   }
   
   .map-controls {
-    @apply absolute top-4 right-4 z-10 flex flex-col gap-2;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
   /* Southwest USA Themed Elements */
   .route-marker {
-    @apply w-3 h-3 rounded-full bg-desert-500 ring-2 ring-white shadow-lg;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+    background-color: #ee7c15;
+    box-shadow: 0 0 0 2px white, 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   }
   
   .poi-marker-national-park {
-    @apply w-4 h-4 rounded-full bg-green-600 ring-2 ring-white shadow-lg;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background-color: #059669;
+    box-shadow: 0 0 0 2px white, 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   }
   
   .poi-marker-route66 {
-    @apply w-4 h-4 rounded-full bg-yellow-500 ring-2 ring-white shadow-lg;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background-color: #eab308;
+    box-shadow: 0 0 0 2px white, 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   }
   
   .poi-marker-desert {
-    @apply w-4 h-4 rounded-full bg-orange-600 ring-2 ring-white shadow-lg;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background-color: #ea580c;
+    box-shadow: 0 0 0 2px white, 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   }
 
   /* Status Indicators */
   .status-online {
-    @apply inline-block w-2 h-2 rounded-full bg-green-400 animate-pulse;
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background-color: #4ade80;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
   
   .status-warning {
-    @apply inline-block w-2 h-2 rounded-full bg-yellow-400 animate-pulse;
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background-color: #facc15;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
   
   .status-error {
-    @apply inline-block w-2 h-2 rounded-full bg-red-400 animate-pulse;
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background-color: #f87171;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
   /* Desert Warning Styles */
   .warning-heat {
-    @apply glass-panel-dark border-l-4 border-orange-500 p-4 text-orange-100;
+    background-color: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    box-shadow: 0 25px 50px -12px rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    border-left: 4px solid #f97316;
+    padding: 1rem;
+    color: #fed7aa;
   }
   
   .warning-snow {
-    @apply glass-panel border-l-4 border-blue-400 p-4 text-blue-900;
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(255, 255, 255, 0.05);
+    border-radius: 1rem;
+    border-left: 4px solid #60a5fa;
+    padding: 1rem;
+    color: #1e3a8a;
   }
 }
 
