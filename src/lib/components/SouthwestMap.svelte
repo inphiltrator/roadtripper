@@ -37,6 +37,42 @@
   
   // Get current seasonal configuration
   const seasonalConfig = getSeasonalConfig(new Date().getMonth());
+
+  const transformRequest = (url: string, resourceType: 'Style' | 'Source' | 'Tile' | 'Glyphs' | 'SpriteImage' | 'SpriteJSON') => {
+    if (url.startsWith('mapbox://')) {
+        const path = url.split('mapbox://')[1];
+        let transformedUrl = '';
+        const accessToken = config.mapbox.accessToken;
+
+        switch (resourceType) {
+            case 'Style':
+                transformedUrl = `https://api.mapbox.com/styles/v1/${path}`;
+                break;
+            case 'SpriteImage':
+            case 'SpriteJSON':
+                const stylePath = path.replace('/sprites', '');
+                const extension = resourceType === 'SpriteImage' ? '.png' : '.json';
+                transformedUrl = `https://api.mapbox.com/styles/v1${stylePath}/sprite${extension}`;
+                break;
+            case 'Glyphs':
+                transformedUrl = `https://api.mapbox.com/fonts/v1/${path}`;
+                break;
+            case 'Source':
+                 transformedUrl = `https://api.mapbox.com/v4/${path}.json?secure`;
+                 break;
+            case 'Tile':
+                transformedUrl = `https://api.mapbox.com/v4/${path}`;
+                break;
+            default:
+                return { url };
+        }
+
+        return {
+            url: `${transformedUrl}${transformedUrl.includes('?') ? '&' : '?'}access_token=${accessToken}`
+        };
+    }
+    return { url };
+  };
   
   onMount(() => {
     mounted = true;
@@ -62,7 +98,7 @@
     // Initialize MapLibre with Southwest configuration
     try {
       // Use MapLibre demo style to avoid MapBox compatibility issues
-      const styleUrl = 'https://demotiles.maplibre.org/style.json';
+      const styleUrl = SOUTHWEST_MAP_CONFIG.mapbox.outdoors.url;
       
       map = new Map({
         container: mapContainer,
@@ -72,14 +108,14 @@
         minZoom: SOUTHWEST_MAP_CONFIG.defaults.minZoom,
         maxZoom: SOUTHWEST_MAP_CONFIG.defaults.maxZoom,
         maxBounds: SOUTHWEST_MAP_CONFIG.bounds,
-        attributionControl: false
+        attributionControl: false,
+        transformRequest
       });
     } catch (error) {
       console.error('❌ Map initialization failed:', error);
       // Try with fallback style
       map = new Map({
         container: mapContainer,
-        style: 'https://demotiles.maplibre.org/style.json',
         center,
         zoom,
         minZoom: SOUTHWEST_MAP_CONFIG.defaults.minZoom,

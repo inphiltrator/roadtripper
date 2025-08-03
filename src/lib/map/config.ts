@@ -40,7 +40,7 @@ function getMapboxMapUrl(styleUrl: string): string {
 export const MAPBOX_MAPS_CONFIG = {
   // Outdoors style optimized for terrain visualization
   outdoors: {
-    url: getMapboxMapUrl('mapbox://styles/mapbox/outdoors-v12'),
+    url: getMapboxMapUrl('mapbox://styles/mapbox/streets-v11'),
     description: 'Terrain-focused style perfect for desert and mountain landscapes'
   },
   
