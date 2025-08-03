@@ -67,8 +67,7 @@ Der Memory Server wird als zentraler Knowledge Graph für das Projekt verwendet,
 5. **MCP-Integration**  
    * Memory-Server mit Southwest-Schema  
    * Filesystem für Code-Zugriff  
-   * GitHub für Versionierung  
-   * Playwright für regionale Tests
+   * GitHub für Versionierung
 
 ### **Experten-Agent Prompt**
 
@@ -107,11 +106,14 @@ Da dies der erste Prompt ist, erstelle zunächst eine Memory Entity "Southwest\_
    \- POI-Kategorien aus agent-guide.md  
    \- Favoriten für National Parks
 
+5\. \*\*Testing:\*\*  
+   \- \*\*Für Unit-Tests:\*\* Gib mir den Befehl, um Vitest im Watch-Modus zu starten. Ich werde diesen in einem separaten Terminal ausführen.  
+   \- \*\*Für E2E-Tests:\*\* Erstelle und führe lokal Playwright-Tests aus, um die grundlegende Funktionalität zu validieren. Beginne mit einem Test, der überprüft, ob die SvelteKit-Anwendung startet. Erstelle dann einen weiteren Test für den MapBox-API-Proxy-Endpunkt, um sicherzustellen, dass er auf eine Beispielabfrage wie 'Las Vegas' erfolgreich antwortet.
+
 \*\*Zu verwendende MCP-Server:\*\*  
 \- @memory für Southwest-Projekt-Tracking  
 \- @filesystem für alle Datei-Operationen  
-\- @github für Versionskontrolle  
-\- @playwright für regionale Test-Setup
+\- @github für Versionskontrolle
 
 \*\*Memory Updates:\*\*  
 \- Erstelle Entity "Southwest\_Roadtripper\_Project"  
@@ -188,16 +190,14 @@ Beginne mit "Remembering..." und hole Southwest-Kartenkonfiguration und UI-Patte
    \- National Parks als Highlight-Areas  
    \- Route 66 als Special Layer
 
-\*\*Test-Szenarien:\*\*  
-\- Karte lädt mit Southwest-Fokus  
-\- Zoom außerhalb der Region wird verhindert  
-\- POI-Cluster bei \> 20 Markern  
-\- Terrain-Farben korrekt bei Death Valley
+5\. \*\*Testing:\*\*  
+   \- \*\*Für Unit-Tests:\*\* Gib mir den Befehl, um Vitest im Watch-Modus zu starten.  
+   \- \*\*Für E2E-Tests:\*\* Entwickle lokal Playwright-Tests, um die Kartenfunktionalität zu überprüfen. Ein Test sollte sicherstellen, dass die Karte mit dem korrekten Zentrum und Zoom-Level in der Southwest-Region geladen wird. Ein weiterer Test sollte überprüfen, ob die 'Liquid Glass' UI-Komponenten (z.B. GlassRouteCard) auf der Seite sichtbar sind.
 
 \*\*Zu verwendende MCP-Server:\*\*  
 \- @memory für UI-Component-Tracking  
 \- @filesystem für Component-Erstellung  
-\- @playwright für Visual Regression Tests
+\- @github für Versionskontrolle
 
 \*\*Memory Updates:\*\*  
 \- Dokumentiere finale Tile-Provider-Wahl  
@@ -211,7 +211,6 @@ Achte besonders auf Performance bei Terrain-Rendering und mobile Responsiveness.
 ### **Hauptziele**
 
 * OpenRouteService mit Southwest-Filter  
-* Photon-Integration für regionale Suche  
 * Scenic Route Optionen  
 * Höhenprofil für Bergpässe
 
@@ -219,22 +218,13 @@ Achte besonders auf Performance bei Terrain-Rendering und mobile Responsiveness.
 
 1. **API-Proxy Setup**  
    * /api/proxy/routing mit Region-Check  
-   * /api/proxy/geocoding mit Bounds  
-   * Caching für beliebte Routen  
 2. **Routing-Features**  
    * Scenic vs. Fastest Options  
    * Avoid Desert in Summer  
    * Mountain Pass Warnings  
    * Fuel Station Integration  
-3. **Optimiere Photon für Region:**  
-   * POI-Suche wird durch MapBox ersetzt  
-   * Implementiere MapBox Places API  
-   * Kategorien-Filter für Southwest:  
-     * National Parks  
-     * Ghost Towns  
-     * Scenic Viewpoints  
-     * Route 66 Attractions  
-   * Implementiere Fuzzy-Search für Spanische Namen  
+3. **POI-Suche erweitern**  
+   * Implementiere MapBox Places API für POI-Kategorien  
 4. **Route-Visualisierung**  
    * Elevation Profile Chart  
    * Temperature Gradient  
@@ -249,12 +239,11 @@ Beginne mit "Remembering..." und rufe regionale Routing-Patterns und POI-Daten a
 
 \*\*Kontext:\*\*  
 \- Primäre Referenz: /Users/inphiltration/development/roadtripper/docs/agent-guide.md (Abschnitt "Regionale Anpassungen")  
-\- Photon läuft mit Southwest-Daten  
-\- MapLibre-Integration aus Phase 2
+\- MapLibre-Integration aus Phase 2 ist abgeschlossen
 
 \*\*Deine spezifischen Aufgaben:\*\*
 
-1\. Implementiere regionales BFF-Pattern:  
+1\. Implementiere regionales BFF-Pattern für Routing:  
    \- Erstelle isInSouthwestRegion() Check  
    \- Route-Längen-Limit: 5000km  
    \- Blocke Routen nach Mexiko/Kanada
@@ -265,13 +254,8 @@ Beginne mit "Remembering..." und rufe regionale Routing-Patterns und POI-Daten a
    \- National Parks Umweg-Option  
    \- Avoid Extreme Heat Zones
 
-3\. Optimiere Photon für Region:  
-   \- POI-Suche mit Kategorien:  
-     \* National Parks  
-     \* Ghost Towns    
-     \* Scenic Viewpoints  
-     \* Route 66 Attractions  
-   \- Implementiere Fuzzy-Search für Spanische Namen
+3\. Optimiere die MapBox-Integration für POIs:  
+   \- Nutze die MapBox Places API für die POI-Suche mit Kategorien.
 
 4\. Baue Advanced Features:  
    \- Elevation Profile Component  
@@ -279,22 +263,13 @@ Beginne mit "Remembering..." und rufe regionale Routing-Patterns und POI-Daten a
    \- Weather-based Re-Routing  
    \- Sunrise/Sunset für Fotografen
 
-\*\*Test-Routen (MUSS funktionieren):\*\*  
-1\. Los Angeles → Las Vegas (Klassiker)  
-2\. Phoenix → Grand Canyon (Touristen-Route)  
-3\. San Francisco → Yosemite (Bergpass)  
-4\. Route 66 Segment (Needles → Flagstaff)
-
-\*\*MapBox Geocoding Tests:\*\*  
-\- "Las Vegas Strip" \- sollte Las Vegas, NV finden  
-\- "Grand Canyon" \- sollte Grand Canyon National Park finden  
-\- "Route 66" \- sollte historische Marker finden  
-\- "Death Valley" \- sollte Death Valley National Park finden
+5\. \*\*Testing:\*\*  
+   \- \*\*Für Unit-Tests:\*\* Gib mir den Befehl, um Vitest im Watch-Modus zu starten.  
+   \- \*\*Für E2E-Tests:\*\* Schreibe umfassende End-to-End-Tests mit Playwright für die Routing-Funktionalität. Erstelle einen Testfall für die klassische Route von 'Los Angeles' nach 'Las Vegas'. Der Test soll die Eingabe der Start- und Zielpunkte simulieren, die Routenberechnung auslösen und überprüfen, ob eine Route auf der Karte gezeichnet wird.
 
 \*\*Zu verwendende MCP-Server:\*\*  
 \- @memory für Route-Pattern-Learning  
 \- @filesystem für API-Implementation  
-\- @playwright für E2E Route Tests  
 \- @github für API-Versionierung
 
 \*\*Memory Updates:\*\*  
@@ -373,16 +348,13 @@ Beginne mit "Remembering..." und hole Trip-Patterns und User-Preferences.
    \- Calendar Integration (.ics)  
    \- Offline-Karten-Pakete
 
-\*\*Test-Szenarien:\*\*  
-\- User plant 7-Tage Southwest Tour  
-\- Favoriten werden korrekt gefiltert  
-\- Template "Grand Circle" lädt  
-\- PDF-Export enthält Höhenprofil
+5\. \*\*Testing:\*\*  
+   \- \*\*Für Unit-Tests:\*\* Gib mir den Befehl, um Vitest im Watch-Modus zu starten.  
+   \- \*\*Für E2E-Tests:\*\* Implementiere lokal Playwright-Tests für das Trip-Management. Erstelle einen Test, der den Login-Prozess simuliert, eine neue Reise erstellt (z.B. '7-Tage Southwest Tour'), diese speichert und anschließend überprüft, ob die Reise in der Übersicht des Benutzers erscheint.
 
 \*\*Zu verwendende MCP-Server:\*\*  
 \- @memory für User-Behavior-Patterns  
 \- @filesystem für Export-Generierung  
-\- @playwright für Multi-Step-Tests  
 \- @github für Schema-Migration
 
 \*\*Memory Updates:\*\*  
@@ -465,23 +437,13 @@ Beginne mit "Remembering..." und rufe POI-Kategorien und Safety-Requirements ab.
    \- Rock Art Site Finder (mit Respekt-Guidelines)  
    \- Ghost Town Database mit Zugangsinfos
 
-\*\*POI-Prioritäten:\*\*  
-1\. National Parks (mit Timed Entry Info)  
-2\. State Parks & BLM Land  
-3\. Historic Route 66 Stops  
-4\. Native American Heritage Sites  
-5\. Geological Wonders
-
-\*\*Test-Szenarien:\*\*  
-\- POI-Suche "camping near Grand Canyon"  
-\- Weather Alert für Monsoon Season  
-\- Cell Coverage Check für remote Route  
-\- Dark Sky Spots nahe aktueller Position
+5\. \*\*Testing:\*\*  
+   \- \*\*Für Unit-Tests:\*\* Gib mir den Befehl, um Vitest im Watch-Modus zu starten.  
+   \- \*\*Für E2E-Tests:\*\* Erstelle lokal Playwright-Tests für die POI-Discovery-Features. Ein Test sollte die Suche nach 'camping near Grand Canyon' simulieren und überprüfen, ob eine Liste von Ergebnissen angezeigt wird. Ein weiterer Test sollte die Funktionalität der Safety Layer überprüfen.
 
 \*\*Zu verwendende MCP-Server:\*\*  
 \- @memory für POI-Usage-Statistics  
 \- @filesystem für Cache-Management  
-\- @playwright für API-Integration-Tests  
 \- @github für API-Key-Management
 
 \*\*Memory Updates:\*\*  
@@ -509,7 +471,6 @@ Implementiere Progressive Disclosure für POI-Details zur Performance-Optimierun
    * CDN Setup für West Coast  
 2. **Docker Finalisierung**  
    * Multi-Stage Build  
-   * Regional Photon Container  
    * Caddy mit Cache-Rules  
    * Backup Automation  
 3. **Monitoring Setup**  
@@ -548,42 +509,26 @@ Beginne mit "Remembering..." und hole alle Deployment-Requirements und Performan
    \# Multi-stage für SvelteKit  
    FROM node:20-alpine AS builder  
    \# Southwest-specific ENV vars  
-   ENV REGION=SOUTHWEST\_USA  
-   ENV PHOTON\_REGION=southwest
+   ENV REGION=SOUTHWEST\_USA
 
 3. Implementiere Regional Monitoring:  
    * Performance by State  
    * Route Popularity Heatmap  
    * API Response Times by Endpoint  
-   * Photon Query Performance  
 4. Erstelle Maintenance Docs:  
    * Monthly OSM Update Process  
    * Seasonal POI Updates  
    * Performance Tuning Guide  
-   * Backup & Recovery Plan
-
-**Deployment Checklist:**
-
-* \[ \] Southwest Bounds hardcoded  
-* \[ \] Photon mit 10GB Regional DB  
-* \[ \] Popular Routes pre-cached  
-* \[ \] Offline Mode für Top 10 Routes  
-* \[ \] SSL für roadtripper.local  
-* \[ \] Backup Script für User-Daten
-
-**Performance Targets:**
-
-* Initial Load: \< 2s  
-* Route Calculation: \< 1s  
-* POI Search: \< 500ms  
-* Map Pan/Zoom: 60fps
+   * Backup & Recovery Plan  
+5. **Testing:**  
+   * **Für Unit-Tests:** Gib mir den Befehl, um die finalen Vitest-Tests auszuführen.  
+   * **Für E2E-Tests:** Führe eine letzte, vollständige Suite von Playwright-Tests durch, die alle Kernfunktionen abdeckt (Routing, Trip-Erstellung, POI-Suche), um die Stabilität der App vor dem Deployment sicherzustellen.
 
 **Zu verwendende MCP-Server:**
 
 * @memory für Deployment-Checklist  
 * @filesystem für Build-Scripts  
-* @github für Release-Tags  
-* @playwright für Performance-Tests
+* @github für Release-Tags
 
 **Memory Updates:**
 
@@ -629,24 +574,24 @@ Stelle sicher, dass die App auch bei schlechter Verbindung in der Wüste funktio
 
 \#\#\# Monatlich
 
-\-   MapBox API-Nutzung überprüfen  
-\-   NPS Timed Entry Updates  
-\-   Weather Pattern Adjustments  
-\-   Popular Route Cache Refresh
+\* MapBox API-Nutzung überprüfen  
+\* NPS Timed Entry Updates  
+\* Weather Pattern Adjustments  
+\* Popular Route Cache Refresh
 
 \#\#\# Saisonal
 
-\-   \*\*Frühling\*\*: Wildflower Spots aktivieren  
-\-   \*\*Sommer\*\*: Extreme Heat Warnings verstärken  
-\-   \*\*Herbst\*\*: Fall Color Reports integrieren  
-\-   \*\*Winter\*\*: Mountain Pass Status prominent
+\* \*\*Frühling\*\*: Wildflower Spots aktivieren  
+\* \*\*Sommer\*\*: Extreme Heat Warnings verstärken  
+\* \*\*Herbst\*\*: Fall Color Reports integrieren  
+\* \*\*Winter\*\*: Mountain Pass Status prominent
 
 \#\#\# Jährlich
 
-\-   Route 66 Historic Sites Review  
-\-   New Ghost Towns / Closures  
-\-   Park Boundary Updates  
-\-   Infrastructure Changes (neue Highways)
+\* Route 66 Historic Sites Review  
+\* New Ghost Towns / Closures  
+\* Park Boundary Updates  
+\* Infrastructure Changes (neue Highways)
 
 \#\# Abschluss
 
