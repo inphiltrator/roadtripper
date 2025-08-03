@@ -7,6 +7,7 @@
   
   import { SOUTHWEST_MAP_CONFIG, getSeasonalConfig } from '$lib/map/config';
   import { isInSouthwestRegion } from '$lib/config/region';
+  import { config } from '$lib/config/env';
   
   interface Props {
     class?: string;
@@ -109,9 +110,13 @@
     
     // Add terrain source if available
     if (map.getSource('terrain') === undefined) {
+      const terrainUrl = config.stadia.apiKey 
+        ? `https://tiles.stadiamaps.com/data/terrarium.json?api_key=${config.stadia.apiKey}`
+        : 'https://tiles.stadiamaps.com/data/terrarium.json';
+      
       map.addSource('terrain', {
         type: 'raster-dem',
-        url: 'https://tiles.stadiamaps.com/data/terrarium.json',
+        url: terrainUrl,
         tileSize: 256
       });
       
@@ -161,6 +166,8 @@
       enablePOIClustering();
     } else {
       disablePOIClustering();
+    }
+  }
   
   function getStateBoundariesGeoJSON(): GeoJSON.Feature[] {
     // Simplified state boundaries for CA, NV, UT, AZ
@@ -261,10 +268,11 @@
     }
   });
   
-<script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
-  import maplibregl from 'maplibre-gl';
-  import 'maplibre-gl/dist/maplibre-gl.css';
+  $effect(() => {
+    if (map && route) {
+      updateRoute();
+    }
+  });
   
   export function drawRoute(coordinates: any) {
     if (!map) return;
@@ -296,7 +304,6 @@
         'line-opacity': 0.8
       }
     });
-  }
   }
   
   function updateWaypoints() {

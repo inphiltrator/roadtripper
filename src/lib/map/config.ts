@@ -3,6 +3,7 @@
 
 import type { LngLatBoundsLike, MapOptions } from 'maplibre-gl';
 import { SOUTHWEST_REGION } from '$lib/config/region';
+import { config } from '$lib/config/env';
 
 // Regional Map Bounds - Southwest USA
 export const SOUTHWEST_BOUNDS: LngLatBoundsLike = [
@@ -21,22 +22,31 @@ export const DEFAULT_MAP_CONFIG: MapOptions = {
   logoPosition: 'bottom-right'
 };
 
+// Function to get Stadia Maps URL with API key
+function getStadiaMapUrl(styleUrl: string): string {
+  if (config.stadia.apiKey) {
+    const separator = styleUrl.includes('?') ? '&' : '?';
+    return `${styleUrl}${separator}api_key=${config.stadia.apiKey}`;
+  }
+  return styleUrl;
+}
+
 // Stadia Maps Configuration for Southwest USA
 export const STADIA_MAPS_CONFIG = {
   // Outdoors style optimized for terrain visualization
   outdoors: {
-    url: 'https://tiles.stadiamaps.com/styles/outdoors.json',
+    url: getStadiaMapUrl('https://tiles.stadiamaps.com/styles/outdoors.json'),
     description: 'Terrain-focused style perfect for desert and mountain landscapes'
   },
   
   // Alternative styles for different use cases
   satellite: {
-    url: 'https://tiles.stadiamaps.com/styles/satellite.json',
+    url: getStadiaMapUrl('https://tiles.stadiamaps.com/styles/satellite.json'),
     description: 'Satellite imagery for detailed terrain inspection'
   },
   
   alidade_smooth: {
-    url: 'https://tiles.stadiamaps.com/styles/alidade_smooth.json',
+    url: getStadiaMapUrl('https://tiles.stadiamaps.com/styles/alidade_smooth.json'),
     description: 'Clean style for urban areas and highways'
   }
 };
