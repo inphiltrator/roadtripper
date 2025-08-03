@@ -32,7 +32,8 @@ function getMapboxMapUrl(styleUrl: string): string {
     }
     return `${styleUrl}?access_token=${config.mapbox.accessToken}`;
   }
-  return styleUrl;
+  // Fallback to OpenStreetMap style if no access token
+  return 'https://demotiles.maplibre.org/style.json';
 }
 
 // Mapbox Maps Configuration for Southwest USA

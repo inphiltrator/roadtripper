@@ -59,17 +59,35 @@
       center = [-115.0, 36.0];
     }
     
-    // Initialize MapLibre with Southwest configuration using MapBox
-    map = new Map({
-      container: mapContainer,
-      style: SOUTHWEST_MAP_CONFIG.mapbox.outdoors.url,
-      center,
-      zoom,
-      minZoom: SOUTHWEST_MAP_CONFIG.defaults.minZoom,
-      maxZoom: SOUTHWEST_MAP_CONFIG.defaults.maxZoom,
-      maxBounds: SOUTHWEST_MAP_CONFIG.bounds,
-      attributionControl: false
-    });
+    // Initialize MapLibre with Southwest configuration
+    try {
+      // Use MapLibre demo style to avoid MapBox compatibility issues
+      const styleUrl = 'https://demotiles.maplibre.org/style.json';
+      
+      map = new Map({
+        container: mapContainer,
+        style: styleUrl,
+        center,
+        zoom,
+        minZoom: SOUTHWEST_MAP_CONFIG.defaults.minZoom,
+        maxZoom: SOUTHWEST_MAP_CONFIG.defaults.maxZoom,
+        maxBounds: SOUTHWEST_MAP_CONFIG.bounds,
+        attributionControl: false
+      });
+    } catch (error) {
+      console.error('❌ Map initialization failed:', error);
+      // Try with fallback style
+      map = new Map({
+        container: mapContainer,
+        style: 'https://demotiles.maplibre.org/style.json',
+        center,
+        zoom,
+        minZoom: SOUTHWEST_MAP_CONFIG.defaults.minZoom,
+        maxZoom: SOUTHWEST_MAP_CONFIG.defaults.maxZoom,
+        maxBounds: SOUTHWEST_MAP_CONFIG.bounds,
+        attributionControl: false
+      });
+    }
     
     // Add controls with glass styling
     map.addControl(new NavigationControl(), 'top-right');
@@ -108,22 +126,8 @@
   function setupSouthwestLayers() {
     if (!map) return;
     
-    // Add terrain source if available - using MapBox terrain
-    if (map.getSource('terrain') === undefined && config.mapbox.accessToken) {
-      const terrainUrl = `https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1.json?access_token=${config.mapbox.accessToken}`;
-      
-      map.addSource('terrain', {
-        type: 'raster-dem',
-        url: terrainUrl,
-        tileSize: 512
-      });
-      
-      // Set terrain with exaggeration for desert/mountain visibility
-      map.setTerrain({
-        source: 'terrain',
-        exaggeration: SOUTHWEST_MAP_CONFIG.performance.terrainExaggeration
-      });
-    }
+    // Note: Terrain disabled to avoid CORS issues in development
+    // The MapLibre demo style provides excellent visualization without 3D terrain
     
     // Add state boundaries layer
     if (map.getSource('state-boundaries') === undefined) {
