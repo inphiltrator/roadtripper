@@ -59,10 +59,10 @@
       center = [-115.0, 36.0];
     }
     
-    // Initialize MapLibre with Southwest configuration
+    // Initialize MapLibre with Southwest configuration using MapBox
     map = new Map({
       container: mapContainer,
-      style: SOUTHWEST_MAP_CONFIG.stadia.outdoors.url,
+      style: SOUTHWEST_MAP_CONFIG.mapbox.outdoors.url,
       center,
       zoom,
       minZoom: SOUTHWEST_MAP_CONFIG.defaults.minZoom,
@@ -108,16 +108,14 @@
   function setupSouthwestLayers() {
     if (!map) return;
     
-    // Add terrain source if available
-    if (map.getSource('terrain') === undefined) {
-      const terrainUrl = config.stadia.apiKey 
-        ? `https://tiles.stadiamaps.com/data/terrarium.json?api_key=${config.stadia.apiKey}`
-        : 'https://tiles.stadiamaps.com/data/terrarium.json';
+    // Add terrain source if available - using MapBox terrain
+    if (map.getSource('terrain') === undefined && config.mapbox.accessToken) {
+      const terrainUrl = `https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1.json?access_token=${config.mapbox.accessToken}`;
       
       map.addSource('terrain', {
         type: 'raster-dem',
         url: terrainUrl,
-        tileSize: 256
+        tileSize: 512
       });
       
       // Set terrain with exaggeration for desert/mountain visibility

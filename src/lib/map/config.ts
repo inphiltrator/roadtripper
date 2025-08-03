@@ -22,9 +22,14 @@ export const DEFAULT_MAP_CONFIG: MapOptions = {
   logoPosition: 'bottom-right'
 };
 
-// Function to get Mapbox Maps URL with API key
+// Function to get Mapbox Maps URL with API key - convert mapbox:// to HTTPS for MapLibre
 function getMapboxMapUrl(styleUrl: string): string {
   if (config.mapbox.accessToken) {
+    // Convert mapbox:// URLs to HTTPS format for MapLibre compatibility
+    if (styleUrl.startsWith('mapbox://styles/')) {
+      const stylePath = styleUrl.replace('mapbox://styles/', '');
+      return `https://api.mapbox.com/styles/v1/${stylePath}?access_token=${config.mapbox.accessToken}`;
+    }
     return `${styleUrl}?access_token=${config.mapbox.accessToken}`;
   }
   return styleUrl;

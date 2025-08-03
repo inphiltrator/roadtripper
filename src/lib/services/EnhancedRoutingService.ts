@@ -50,33 +50,38 @@ export class EnhancedRoutingService {
   }
 
   /**
-   * Processes the raw response from the Google Maps Routes API into the application's Route format.
-   * @param data The raw data from the API.
+   * Processes the response from our proxy routing API which already has the correct Route format.
+   * @param data The response data from our proxy API.
    * @param waypoints The original waypoints for context.
    * @returns An array of processed routes.
    */
   private processRouteResponse(data: any, waypoints: Waypoint[]): Route[] {
+    // The proxy already returns data in the correct format with routes array
     if (!data.routes || !Array.isArray(data.routes)) {
+      console.warn('Invalid response format from routing proxy');
       return [];
     }
 
+    // Validate and return the routes - they're already in our Route format
     return data.routes.map((route: any, index: number) => {
-      const newRoute: Route = {
-        id: `google_route_${index}`,
-        name: `Route ${index + 1}`,
-        distance: route.distanceMeters / 1609.34, // Convert meters to miles
-        duration: parseInt(route.duration.slice(0, -1)) / 60, // Convert seconds string to minutes
-        waypoints: waypoints,
-        geometry: {
+      // Ensure all required fields are present
+      const processedRoute: Route = {
+        id: route.id || `route_${index}`,
+        name: route.name || `Route ${index + 1}`,
+        distance: route.distance || 0,
+        duration: route.duration || 0,
+        waypoints: route.waypoints || waypoints,
+        geometry: route.geometry || {
           type: 'LineString',
-          coordinates: route.polyline.geoJsonLinestring.coordinates,
+          coordinates: []
         },
-        instructions: [], // Google Routes API does not provide instructions in this basic response
-        warnings: [],     // Or warnings
-        routeType: 'interstate', // Default type
-        difficulty: 'moderate',  // Default difficulty
+        instructions: route.instructions || [],
+        warnings: route.warnings || [],
+        routeType: route.routeType || 'interstate',
+        difficulty: route.difficulty || 'moderate'
       };
-      return newRoute;
+      
+      return processedRoute;
     });
   }
 }
