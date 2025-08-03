@@ -261,6 +261,11 @@
     }
   });
   
+<script lang="ts">
+  import { onMount, onDestroy } from 'svelte';
+  import maplibregl from 'maplibre-gl';
+  import 'maplibre-gl/dist/maplibre-gl.css';
+  
   export function drawRoute(coordinates: any) {
     if (!map) return;
 
