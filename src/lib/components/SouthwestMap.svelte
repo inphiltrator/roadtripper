@@ -161,8 +161,6 @@
       enablePOIClustering();
     } else {
       disablePOIClustering();
-    }
-  }
   
   function getStateBoundariesGeoJSON(): GeoJSON.Feature[] {
     // Simplified state boundaries for CA, NV, UT, AZ
@@ -263,11 +261,38 @@
     }
   });
   
-  $effect(() => {
-    if (map && route) {
-      updateRoute();
+  export function drawRoute(coordinates: any) {
+    if (!map) return;
+
+    const routeGeoJson = {
+      type: 'Feature',
+      geometry: {
+        type: 'LineString',
+        coordinates: coordinates
+      }
+    };
+
+    if (map.getSource('route')) {
+      map.removeLayer('route');
+      map.removeSource('route');
     }
-  });
+    
+    map.addSource('route', {
+      type: 'geojson',
+      data: routeGeoJson
+    });
+    map.addLayer({
+      id: 'route',
+      type: 'line',
+      source: 'route',
+      paint: {
+        'line-color': '#FF6B35',
+        'line-width': 4,
+        'line-opacity': 0.8
+      }
+    });
+  }
+  }
   
   function updateWaypoints() {
     if (!map) return;
