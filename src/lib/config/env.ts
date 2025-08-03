@@ -3,7 +3,7 @@ export const config = {
     apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   },
   mapbox: {
-    accessToken: import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN,
+    accessToken: "pk.eyJ1IjoiaW5waGlsdHJhdGlvbiIsImEiOiJjbWR3M29xMm8xd25mMm1zNjJzMm9nYTh0In0.-nsVR925zw7hNjISo-QB6Q",
     styleUrl: import.meta.env.VITE_MAPBOX_STYLE_URL || 'mapbox://styles/mapbox/outdoors-v12'
   },
   performance: {

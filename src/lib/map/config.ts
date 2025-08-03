@@ -24,15 +24,24 @@ export const DEFAULT_MAP_CONFIG: MapOptions = {
 
 // Function to get Mapbox Maps URL with API key - convert mapbox:// to HTTPS for MapLibre
 function getMapboxMapUrl(styleUrl: string): string {
-  if (config.mapbox.accessToken) {
+  const accessToken = config.mapbox.accessToken;
+  
+  if (accessToken && styleUrl.startsWith('mapbox://')) {
     // Convert mapbox:// URLs to HTTPS format for MapLibre compatibility
     if (styleUrl.startsWith('mapbox://styles/')) {
       const stylePath = styleUrl.replace('mapbox://styles/', '');
-      return `https://api.mapbox.com/styles/v1/${stylePath}?access_token=${config.mapbox.accessToken}`;
+      return `https://api.mapbox.com/styles/v1/${stylePath}?access_token=${accessToken}`;
     }
-    return `${styleUrl}?access_token=${config.mapbox.accessToken}`;
+    return `${styleUrl}?access_token=${accessToken}`;
   }
-  // Fallback to OpenStreetMap style if no access token
+  
+  // If already a full URL (HTTPS), return as-is
+  if (styleUrl.startsWith('https://')) {
+    return styleUrl;
+  }
+  
+  // Fallback to MapLibre demo style if no valid URL or access token
+  console.warn('No valid MapBox access token or style URL, using MapLibre demo style');
   return 'https://demotiles.maplibre.org/style.json';
 }
 
@@ -40,8 +49,9 @@ function getMapboxMapUrl(styleUrl: string): string {
 export const MAPBOX_MAPS_CONFIG = {
   // Outdoors style optimized for terrain visualization
   outdoors: {
-    url: getMapboxMapUrl('mapbox://styles/mapbox/streets-v11'),
-    description: 'Terrain-focused style perfect for desert and mountain landscapes'
+    // Use style URL from environment (.env) so it can be switched without code edits
+    url: getMapboxMapUrl(config.mapbox.styleUrl || 'mapbox://styles/mapbox/streets-v12'),
+    description: 'Terrain-focused style (env overridable)'
   },
   
   // Alternative styles for different use cases

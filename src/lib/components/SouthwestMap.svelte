@@ -1,9 +1,9 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import maplibregl from 'maplibre-gl';
-  import 'maplibre-gl/dist/maplibre-gl.css';
+  import { browser } from '$app/environment';
   
-  const { Map, NavigationControl, ScaleControl, GeolocateControl } = maplibregl;
+  let maplibregl: any;
+  let Map: any, NavigationControl: any, ScaleControl: any, GeolocateControl: any;
   
   import { SOUTHWEST_MAP_CONFIG, getSeasonalConfig } from '$lib/map/config';
   import { isInSouthwestRegion } from '$lib/config/region';
@@ -11,8 +11,6 @@
   
   interface Props {
     class?: string;
-    center?: [number, number];
-    zoom?: number;
     onMapClick?: (coords: { lat: number; lng: number }) => void;
     onMapLoad?: (map: Map) => void;
     waypoints?: Array<{ lat: number; lng: number; name: string; icon?: string }>;
@@ -22,8 +20,6 @@
   
   let {
     class: className = '',
-    center = SOUTHWEST_MAP_CONFIG.defaults.center as [number, number],
-    zoom = SOUTHWEST_MAP_CONFIG.defaults.zoom!,
     onMapClick,
     onMapLoad,
     waypoints = [],
@@ -33,49 +29,101 @@
   
   let mapContainer: HTMLDivElement;
   let map: Map | null = null;
-  let mounted = false;
+  
+  // Reactive state using Svelte 5 runes (as recommended in docs)
+  let center = $state(SOUTHWEST_MAP_CONFIG.defaults.center as [number, number]);
+  let zoom = $state(SOUTHWEST_MAP_CONFIG.defaults.zoom!);
+  let pitch = $state(0);
+  let bearing = $state(0);
+  
+  // Lock mechanism to prevent reactivity loops (critical per docs section 3.3)
+  let isUpdatingFromSvelte = false;
   
   // Get current seasonal configuration
   const seasonalConfig = getSeasonalConfig(new Date().getMonth());
 
-  const transformRequest = (url: string, resourceType: 'Style' | 'Source' | 'Tile' | 'Glyphs' | 'SpriteImage' | 'SpriteJSON') => {
-    if (url.startsWith('mapbox://')) {
-        const path = url.split('mapbox://')[1];
-        let transformedUrl = '';
-        const accessToken = config.mapbox.accessToken;
-
-        switch (resourceType) {
-            case 'Style':
-                transformedUrl = `https://api.mapbox.com/styles/v1/${path}`;
-                break;
-            case 'SpriteImage':
-            case 'SpriteJSON':
-                const stylePath = path.replace('/sprites', '');
-                const extension = resourceType === 'SpriteImage' ? '.png' : '.json';
-                transformedUrl = `https://api.mapbox.com/styles/v1${stylePath}/sprite${extension}`;
-                break;
-            case 'Glyphs':
-                transformedUrl = `https://api.mapbox.com/fonts/v1/${path}`;
-                break;
-            case 'Source':
-                 transformedUrl = `https://api.mapbox.com/v4/${path}.json?secure`;
-                 break;
-            case 'Tile':
-                transformedUrl = `https://api.mapbox.com/v4/${path}`;
-                break;
-            default:
-                return { url };
-        }
-
+  // Transform MapBox URLs for MapLibre GL JS compatibility
+  const transformRequest = (url: string, resourceType: string) => {
+    const accessToken = config.mapbox.accessToken;
+    
+    // Only transform mapbox:// URLs if we have an access token
+    if (url.startsWith('mapbox://') && accessToken) {
+      const path = url.replace('mapbox://', '');
+      
+      // Handle different resource types
+      if (resourceType === 'Style') {
+        // For styles, remove the 'styles/' prefix if present to avoid duplication
+        const stylePath = path.startsWith('styles/') ? path.replace('styles/', '') : path;
         return {
-            url: `${transformedUrl}${transformedUrl.includes('?') ? '&' : '?'}access_token=${accessToken}`
+          url: `https://api.mapbox.com/styles/v1/${stylePath}?access_token=${accessToken}`
         };
+      } else if (resourceType === 'Source') {
+        return {
+          url: `https://api.mapbox.com/v4/${path}.json?access_token=${accessToken}`
+        };
+      } else if (resourceType === 'Tile') {
+        return {
+          url: `${url.replace('mapbox://', 'https://api.mapbox.com/v4/')}?access_token=${accessToken}`
+        };
+      } else if (resourceType === 'Glyphs') {
+        return {
+          url: `https://api.mapbox.com/fonts/v1/${path}?access_token=${accessToken}`
+        };
+      } else if (resourceType === 'SpriteImage') {
+        return {
+          url: `https://api.mapbox.com/styles/v1/${path.replace('/sprite', '')}/sprite.png?access_token=${accessToken}`
+        };
+      } else if (resourceType === 'SpriteJSON') {
+        return {
+          url: `https://api.mapbox.com/styles/v1/${path.replace('/sprite', '')}/sprite.json?access_token=${accessToken}`
+        };
+      }
     }
+    
     return { url };
   };
   
-  onMount(() => {
-    mounted = true;
+  // Critical $effect for unidirectional data flow: Svelte -> Mapbox (docs section 3.1)
+  $effect(() => {
+    if (!map) return;
+    
+    // Get current values from map to avoid unnecessary updates
+    const currentCenter = map.getCenter();
+    const currentZoom = map.getZoom();
+    const currentPitch = map.getPitch();
+    const currentBearing = map.getBearing();
+    
+    // Compare and update only if there's a deviation (performance optimization)
+    if (currentCenter.lng !== center[0] || currentCenter.lat !== center[1] ||
+        currentZoom !== zoom || currentPitch !== pitch || currentBearing !== bearing) {
+      
+      isUpdatingFromSvelte = true; // Activate lock
+      
+      map.flyTo({
+        center: center,
+        zoom: zoom,
+        pitch: pitch,
+        bearing: bearing,
+        duration: 1500 // Smooth animation
+      });
+      
+      // Release lock after animation duration + buffer
+      setTimeout(() => {
+        isUpdatingFromSvelte = false;
+      }, 1600); // Slightly longer than flyTo duration
+    }
+  });
+  
+  onMount(async () => {
+    if (!browser) return; // Only run in browser
+    
+    // Dynamic import to avoid SSR issues
+    maplibregl = await import('maplibre-gl');
+    await import('maplibre-gl/dist/maplibre-gl.css');
+    
+    // Extract the classes we need
+    ({ Map, NavigationControl, ScaleControl, GeolocateControl } = maplibregl.default);
+    
     initializeMap();
   });
   
@@ -87,7 +135,7 @@
   });
   
   function initializeMap() {
-    if (!mapContainer || !mounted) return;
+    if (!mapContainer) return;
     
     // Validate center is within Southwest bounds
     if (!isInSouthwestRegion(center[1], center[0])) {
@@ -97,10 +145,31 @@
     
     // Initialize MapLibre with Southwest configuration
     try {
-      // Use MapLibre demo style to avoid MapBox compatibility issues
-      const styleUrl = SOUTHWEST_MAP_CONFIG.mapbox.outdoors.url;
+      const accessToken = config.mapbox.accessToken;
       
-      map = new Map({
+      // Debug environment variables
+      console.log('🔍 Debug - config.mapbox.styleUrl:', config.mapbox.styleUrl);
+      console.log('🔍 Debug - SOUTHWEST_MAP_CONFIG.mapbox.outdoors.url:', SOUTHWEST_MAP_CONFIG.mapbox.outdoors.url);
+      
+      // Use the configured style URL from environment variable
+      let styleUrl = config.mapbox.styleUrl;
+      
+      // If no style URL configured, use default from config
+      if (!styleUrl) {
+        console.log('🔍 No styleUrl in config, using SOUTHWEST_MAP_CONFIG default');
+        styleUrl = SOUTHWEST_MAP_CONFIG.mapbox.outdoors.url;
+      }
+      
+      // If no MapBox token, use MapLibre demo style as fallback
+      if (!accessToken) {
+        console.warn('⚠️ No MapBox access token found, using fallback style');
+        styleUrl = 'https://demotiles.maplibre.org/style.json';
+      }
+      
+      console.log('🗺️ Initializing map with style:', styleUrl);
+      console.log('🔐 Access token available:', !!accessToken);
+      
+      const mapConfig = {
         container: mapContainer,
         style: styleUrl,
         center,
@@ -108,21 +177,42 @@
         minZoom: SOUTHWEST_MAP_CONFIG.defaults.minZoom,
         maxZoom: SOUTHWEST_MAP_CONFIG.defaults.maxZoom,
         maxBounds: SOUTHWEST_MAP_CONFIG.bounds,
-        attributionControl: false,
-        transformRequest
-      });
+        attributionControl: false
+      };
+      
+      // Only use transformRequest for mapbox:// protocol URLs with access tokens
+      // For direct HTTPS URLs (from .env), MapLibre handles them directly
+      if (accessToken && styleUrl.startsWith('mapbox://')) {
+        console.log('🔄 Using transformRequest for mapbox:// protocol');
+        mapConfig.transformRequest = transformRequest;
+      } else if (styleUrl.startsWith('https://') && styleUrl.includes('mapbox.com')) {
+        console.log('✅ Using direct HTTPS MapBox style URL (no transform needed)');
+      } else {
+        console.log('🔄 Using fallback style or other provider');
+      }
+      
+      map = new Map(mapConfig);
+      
     } catch (error) {
       console.error('❌ Map initialization failed:', error);
-      // Try with fallback style
-      map = new Map({
-        container: mapContainer,
-        center,
-        zoom,
-        minZoom: SOUTHWEST_MAP_CONFIG.defaults.minZoom,
-        maxZoom: SOUTHWEST_MAP_CONFIG.defaults.maxZoom,
-        maxBounds: SOUTHWEST_MAP_CONFIG.bounds,
-        attributionControl: false
-      });
+      
+      // Fallback to basic MapLibre style
+      console.log('🔄 Attempting fallback initialization...');
+      try {
+        map = new Map({
+          container: mapContainer,
+          style: 'https://demotiles.maplibre.org/style.json',
+          center,
+          zoom,
+          minZoom: SOUTHWEST_MAP_CONFIG.defaults.minZoom,
+          maxZoom: SOUTHWEST_MAP_CONFIG.defaults.maxZoom,
+          maxBounds: SOUTHWEST_MAP_CONFIG.bounds,
+          attributionControl: false
+        });
+      } catch (fallbackError) {
+        console.error('❌ Fallback initialization also failed:', fallbackError);
+        throw fallbackError;
+      }
     }
     
     // Add controls with glass styling
@@ -139,6 +229,12 @@
     map.on('load', () => {
       setupSouthwestLayers();
       if (onMapLoad) onMapLoad(map);
+      // Attach zoom listener after style is fully loaded to avoid "Style is not done loading" errors
+      map.on('zoom', () => {
+        if (!map.isStyleLoaded()) return;
+        const currentZoom = map.getZoom();
+        updateTerrainVisualization(currentZoom);
+      });
     });
     
     map.on('click', (e) => {
@@ -152,11 +248,26 @@
       }
     });
     
-    // Terrain-aware zoom handling
-    map.on('zoom', () => {
-      const currentZoom = map.getZoom();
-      updateTerrainVisualization(currentZoom);
+    // Bidirectional data flow: Mapbox -> Svelte (critical per docs section 3.2)
+    map.on('move', () => {
+      if (isUpdatingFromSvelte) {
+        // If movement was triggered by Svelte, ignore the event to prevent loops
+        return;
+      }
+      // Otherwise update Svelte state
+      const newCenter = map.getCenter();
+      center = [newCenter.lng, newCenter.lat];
+      zoom = map.getZoom();
+      pitch = map.getPitch();
+      bearing = map.getBearing();
     });
+    
+    return () => {
+      if (map) {
+        map.remove();
+        map = null;
+      }
+    };
   }
   
   function setupSouthwestLayers() {
