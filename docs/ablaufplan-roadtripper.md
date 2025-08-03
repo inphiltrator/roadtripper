@@ -41,7 +41,7 @@ Der Memory Server wird als zentraler Knowledge Graph für das Projekt verwendet,
 
 * SvelteKit-Projekt mit Southwest USA Fokus  
 * Docker-Setup für regionale Services  
-* MapBox Geocoding API Integration  
+* Google Maps Routes API Integration
 * Prisma Schema für Trip-Planung  
 * MCP-Server Konfiguration
 
@@ -143,7 +143,7 @@ Beginne mit der Analyse der docs/agent-guide.md und setze die regionale Infrastr
    * Southwest Bounds enforcement  
    * Initial View auf Las Vegas Area  
 2. **Tile-Provider Konfiguration**  
-   * Stadia Maps mit Region-Cache  
+   * Mapbox mit Region-Cache  
    * Zoom-Level 6-18 für Southwest  
    * Terrain-Layer für Elevation  
 3. **UI-Komponenten**  
@@ -175,7 +175,7 @@ Beginne mit "Remembering..." und hole Southwest-Kartenkonfiguration und UI-Patte
    \- Zoom-Limits: Min 5, Max 18
 
 2\. Konfiguriere Terrain-aware Tiles:  
-   \- Nutze Stadia Maps Outdoors Style  
+   * Nutze Google Maps Routes API  
    \- Implementiere Höhen-Farbcodierung  
    \- Cache beliebte Zoom-Level (8-15)
 
@@ -210,7 +210,7 @@ Achte besonders auf Performance bei Terrain-Rendering und mobile Responsiveness.
 
 ### **Hauptziele**
 
-* OpenRouteService mit Southwest-Filter  
+* Google Maps Routes API mit Southwest-Filter  
 * Scenic Route Optionen  
 * Höhenprofil für Bergpässe
 
@@ -224,7 +224,7 @@ Achte besonders auf Performance bei Terrain-Rendering und mobile Responsiveness.
    * Mountain Pass Warnings  
    * Fuel Station Integration  
 3. **POI-Suche erweitern**  
-   * Implementiere MapBox Places API für POI-Kategorien  
+   * Implementiere Google Maps Routes API für POI-Kategorien  
 4. **Route-Visualisierung**  
    * Elevation Profile Chart  
    * Temperature Gradient  

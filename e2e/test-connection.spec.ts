@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('Southwest Roadtripper app loads', async ({ page }) => {
-  await page.goto('http://localhost:5176');
+  await page.goto('http://localhost:5173');
   
   // Wait for the page to load
   await page.waitForLoadState('networkidle');

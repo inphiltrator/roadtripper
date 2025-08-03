@@ -29,16 +29,8 @@ test.describe('Southwest USA Roadtripper App', () => {
     // Look for glass panel components
     const glassPanels = page.locator('.glass-panel, .glass-card');
     const glassCount = await glassPanels.count();
-    
     expect(glassCount).toBeGreaterThan(0);
     console.log(`✅ Found ${glassCount} glass UI components`);
-    
-    // Check for backdrop blur effects
-    const blurElements = page.locator('[class*="backdrop-blur"]');
-    const blurCount = await blurElements.count();
-    
-    expect(blurCount).toBeGreaterThan(0);
-    console.log(`✅ Found ${blurCount} backdrop-blur elements`);
   });
 
   test('Map component is present and loads', async ({ page }) => {

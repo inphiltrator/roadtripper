@@ -15,7 +15,7 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-  default: async ({ request, fetch }) => {
+  calculateRoute: async ({ request, fetch }) => {
     // 1. Get the permanent user directly from the database
     const user = await prisma.user.findUnique({
       where: { email: PERMANENT_USER_EMAIL },

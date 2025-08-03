@@ -1,20 +1,10 @@
 export const config = {
-  openRouteService: {
-    apiKey: import.meta.env.VITE_ORS_API_KEY || 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjczODIzZjRlMWM5YjRiOGFiNGZjNWE5MWRhYmFjMDQwIiwiaCI6Im11cm11cjY0In0=',
-    baseUrl: import.meta.env.VITE_ORS_BASE_URL || 'https://api.openrouteservice.org/v2',
-    timeout: 25000 // 25 seconds
-  },
-  overpass: {
-    endpoint: import.meta.env.VITE_OVERPASS_ENDPOINT || 'https://overpass.private.coffee/api/interpreter',
-    timeout: 25000 // 25 seconds
+  google: {
+    apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   },
   mapbox: {
     accessToken: import.meta.env.VITE_MAPBOX_ACCESS_TOKEN,
     styleUrl: import.meta.env.VITE_MAPBOX_STYLE_URL || 'mapbox://styles/mapbox/outdoors-v12'
-  },
-  stadia: {
-    apiKey: import.meta.env.VITE_STADIA_API_KEY,
-    outdoorsStyle: import.meta.env.VITE_STADIA_OUTDOORS_STYLE || 'https://tiles.stadiamaps.com/styles/outdoors.json'
   },
   performance: {
     maxPOIsPerRequest: 50,
@@ -43,17 +33,13 @@ export const config = {
 export function validateEnvironment(): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
   
-  if (!config.openRouteService.apiKey || config.openRouteService.apiKey === 'your-api-key-here') {
-    errors.push('OpenRouteService API key is required (VITE_ORS_API_KEY)');
+  if (!config.google.apiKey) {
+    errors.push('Google Maps API key is required (VITE_GOOGLE_MAPS_API_KEY)');
   }
   
   // Optional validations for enhanced features
   if (!config.mapbox.accessToken) {
     console.warn('Mapbox access token not provided, using fallback maps');
-  }
-  
-  if (!config.stadia.apiKey) {
-    console.warn('Stadia Maps API key not provided, using public tiles');
   }
   
   return {
@@ -82,10 +68,8 @@ if (features.enableDebugMode) {
     isProduction,
     features,
     apis: {
-      openRouteService: !!config.openRouteService.apiKey,
-      overpass: !!config.overpass.endpoint,
-      mapbox: !!config.mapbox.accessToken,
-      stadia: !!config.stadia.apiKey
+      google: !!config.google.apiKey,
+      mapbox: !!config.mapbox.accessToken
     }
   });
 }

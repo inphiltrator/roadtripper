@@ -20,8 +20,8 @@ Die folgende Tabelle bietet eine konsolidierte Übersicht über die empfohlenen 
 | Frontend Framework | SvelteKit | Erstklassige Performance und Developer Experience (DX), integriertes SSR und API-Routen. |
 | UI-Bibliothek | Tailwind CSS | Utility-First-Ansatz für schnelle, konsistente UI-Entwicklung und einfache Implementierung des "Liquid Glass"-Designs. |
 | Karten-Rendering | MapLibre GL JS | Hochleistungsfähiges, clientseitiges Rendering von Vektor-Kacheln mit WebGL für ein modernes, flüssiges Kartenerlebnis. |
-| Vektor-Kachel-Quelle | Stadia Maps API | Großzügiger kostenloser Tarif, um die Last des Selbsthostings von Vektor-Kacheln zu vermeiden, was selbst auf der Zielhardware eine Herausforderung wäre. |
-| Routing-Engine | OpenRouteService API | Funktionsreiche, kostenlose API, die ein Selbsthosting einer rechenintensiven Engine überflüssig macht. |
+| Vektor-Kachel-Quelle | Mapbox | Hochwertige, aktuelle Vektor-Kacheln, die sich nahtlos in das Mapbox/MapLibre-Ökosystem integrieren. |
+| Routing-Engine | Google Maps Routes API | Branchenführende API für Langstrecken-Routing mit Echtzeit-Verkehrsdaten und Wegpunkt-Optimierung. |
 | Geocoding & POI-Suche | MapBox Geocoding API | Großzügiger Free Tier (100k Anfragen/Monat), exzellente Performance und Datenqualität, kein Self-Hosting erforderlich. |
 | Datenbank | SQLite via Prisma | Einfache, dateibasierte Persistenz, perfekt für SvelteKit. Prisma bietet Typsicherheit und ein leistungsstarkes Migrationssystem. |
 | KI-Entwicklungsumgebung | Warp 2.0 \+ MCP-Server (Filesystem, Git, Playwright) | Ermöglicht einen echten agentenbasierten Workflow. Warp 2.0 dient als MCP-Client, der der KI über dedizierte Server kontrollierten Zugriff auf die Codebasis, Versionskontrolle und Test-Frameworks gibt. 1 |
@@ -44,7 +44,7 @@ Um Skalierbarkeit und Wartbarkeit zu gewährleisten, wird eine durchdachte Proje
     * discover/: Eine dedizierte Ansicht zur Erkundung von Points of Interest (POIs) entlang einer Route oder in einer bestimmten Region.  
   * (auth)/: Für alle authentifizierungsbezogenen Seiten wie Login, Registrierung und Passwort-zurücksetzen.  
   * api/: Für die Erstellung von serverseitigen API-Endpunkten, die als Backend-For-Frontend (BFF) dienen.  
-    * proxy/routing: Ein serverseitiger Endpunkt, der Anfragen sicher an die OpenRouteService-API weiterleitet und dabei den API-Schlüssel vor dem Client verbirgt.  
+   * proxy/routing: Ein serverseitiger Endpunkt, der Anfragen sicher an die Google Maps Routes API weiterleitet und dabei den API-Schlüssel vor dem Client verbirgt.  
     * proxy/geocoding: Ein Endpunkt, der Anfragen an die externe MapBox Geocoding API weiterleitet.  
 * src/lib/: Heimat für wiederverwendbaren Code und Module.  
   * components/: UI-Komponenten wie Buttons, Modals, Kartensteuerelemente etc.  
@@ -110,7 +110,7 @@ Die direkte imperative Manipulation eines komplexen MapLibre-Objekts innerhalb d
 
 \<div class="h-screen w-screen"\>  
   \<Map  
-    style="https://tiles.stadiamaps.com/styles/alidade\_smooth.json"  
+    style="https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=YOUR_MAPBOX_ACCESS_TOKEN"  
     class="h-full w-full"  
     center={\[-74.2, 40.35\]}  
     zoom={8}  
@@ -141,7 +141,7 @@ Es gibt hervorragende Open-Source-Projekte wie OpenMapTiles, die Werkzeuge zur V
 
 Um die Hardware-Belastung vollständig zu eliminieren und dennoch qualitativ hochwertige Vektorkacheln zu nutzen, ist die pragmatischste und robusteste Lösung die Verwendung eines externen Dienstes, der OpenStreetMap-basierte Vektorkacheln über eine API bereitstellt.
 
-* Empfohlener Anbieter: Stadia Maps. Dieser Anbieter bietet einen sehr großzügigen kostenlosen Tarif, der für ein privates Projekt mehr als ausreichend sein sollte. Ein großer Vorteil ist die einfache, domainbasierte Authentifizierung für den Einsatz im Web, die keine API-Schlüssel im Client-Code erfordert.  
+* Empfohlener Anbieter: Mapbox. Mapbox bietet einen hervorragenden kostenlosen Tarif und ist der Industriestandard für hochwertige Vektor-Kacheln. Die Integration ist nahtlos, da MapLibre GL JS als Fork von Mapbox GL JS entstanden ist.  
 * Alternativer Anbieter: MapTiler. MapTiler ist ein bedeutender Akteur im Open-Source-Mapping-Ökosystem und ein Hauptunterstützer von MapLibre selbst. Sie bieten ebenfalls einen kostenlosen Tarif und eine breite Palette an Kartenstilen.  
 * Alternativer Anbieter: OpenFreeMap Public Instance. Dies ist eine sehr attraktive Option, da sie explizit kostenlos und ohne Limits, Registrierung oder API-Schlüssel ist. Für die anfängliche Entwicklung und das Prototyping ist dies ein exzellenter, reibungsloser Startpunkt.
 
@@ -173,7 +173,7 @@ Die Gegenüberstellung der Anforderungen und der verfügbaren Hardware macht die
 | GraphHopper | \~120 GB+ | Erheblich (\> 16 GB) | 16 GB | Nicht machbar |
 | Valhalla | \~64 GB+ | \~32-64 GB | 16 GB | Nicht machbar |
 
-Schlussfolgerung: Das Selbsthosten einer Routing-Engine für eine geografische Abdeckung, die über ein sehr kleines Land hinausgeht, ist auf dem spezifizierten 16-GB-MacBook Air kategorisch unmöglich. Jeder Versuch in diese Richtung wird zu Frustration, Systemabstürzen und letztendlich zum Scheitern dieses Projektteils führen. Primäre Empfehlung: Nutzung der öffentlichen OpenRouteService API. ORS bietet einen sehr großzügigen kostenlosen Tarif für Open-Source- und private Projekte. Die API ist extrem funktionsreich und bietet genau die Features, die für eine Roadtrippers-Alternative benötigt werden: Routing für verschiedene Profile (Auto, LKW, Fahrrad), Isochronen (Erreichbarkeitspolygone) und Matrix-Routing (Berechnung von Reisezeiten zwischen vielen Punkten). Die Nutzung der API über den in Abschnitt II beschriebenen BFF-Proxy ist der einzig gangbare und zugleich leistungsfähigste Weg für dieses Projekt.
+Schlussfolgerung: Das Selbsthosten einer Routing-Engine für eine geografische Abdeckung, die über ein sehr kleines Land hinausgeht, ist auf dem spezifizierten 16-GB-MacBook Air kategorisch unmöglich. Jeder Versuch in diese Richtung wird zu Frustration, Systemabstürzen und letztendlich zum Scheitern dieses Projektteils führen. Primäre Empfehlung: Nutzung der öffentlichen Google Maps Routes API. Google Maps ist der Branchenführer für Routing und bietet eine extrem funktionsreiche API.
 
 #### **C. Alternativer Pfad (für Fortgeschrittene): Routing für begrenzte Gebiete**
 
@@ -370,7 +370,7 @@ Wesentliche Anweisungen für den System-Prompt:
 * "Halte dich strikt an die vorgegebene SvelteKit-Projektstruktur, einschließlich der Verwendung von Routengruppen (app), (auth) etc."  
 * "Für Formulare musst du SvelteKits enhance-Aktion für Progressive Enhancement verwenden. Validiere die Formulardaten serverseitig und gib klares Feedback über das form-Objekt zurück."  
 * "Jeder Datenbankzugriff muss über den Prisma-Client-Singleton erfolgen, der unter src/lib/server/prisma.ts exportiert wird."  
-* "Alle Aufrufe externer APIs (wie OpenRouteService oder MapBox) müssen über unsere eigenen SvelteKit-API-Endpunkte in src/routes/api/proxy/ als Proxy geleitet werden."  
+* Alle Aufrufe externer APIs (wie Google Maps oder MapBox) müssen über unsere eigenen SvelteKit-API-Endpunkte in src/routes/api/proxy/ als Proxy geleitet werden."  
 * "Schreibe für jede neue Funktionalität zuerst einen Playwright E2E-Test, der den gewünschten User-Flow abbildet. Nutze dafür den @playwright-Server."
 
 #### **E. Der TDD-Zyklus in Aktion: Ein MCP-gesteuerter Workflow**
@@ -410,15 +410,15 @@ Ein strukturierter, phasenweiser Ansatz wird empfohlen, um die Entwicklung zu or
 * **Phase 1: Fundament & Setup**  
   * Initialisierung des SvelteKit-Projekts mit TypeScript und Tailwind CSS.  
   * Einrichtung von Prisma, Definition des initialen Datenbankschemas und Ausführung der ersten Migration.  
-  * Einholen der API-Schlüssel für MapBox und OpenRouteService und Konfiguration in einer .env-Datei.  
+  * Einholen der API-Schlüssel für MapBox und Google Maps und Konfiguration in einer .env-Datei.  
   * Konfiguration der essenziellen MCP-Server (Filesystem, Git, Playwright) in Warp 2.0. 13  
 * **Phase 2: Das Kern-Kartenerlebnis**  
   * Integration von MapLibre GL JS unter Verwendung der svelte-maplibre-gl-Wrapper-Bibliothek.  
-  * Anbindung an einen externen Vektor-Kachel-Anbieter (z.B. Stadia Maps oder OpenFreeMap).  
+  * Anbindung an Mapbox als Vektor-Kachel-Anbieter.  
   * Implementierung grundlegender Kartensteuerelemente (Navigation, Zoom) und Anzeige der Basiskarte.  
 * **Phase 3: Kernfunktionalität (KI-unterstützt)**  
   * Implementierung der Benutzerauthentifizierung (Registrierung, Login, Sitzungsverwaltung).  
-  * Aufbau der Proxy-Endpunkte für MapBox (Geocoding) und OpenRouteService (Routing).  
+  * Aufbau der Proxy-Endpunkte für MapBox (Geocoding) und Google Maps (Routing).  
   * Entwicklung der Funktionen zur Erstellung von Reisen und zur Verwaltung von Wegpunkten, einschließlich des Speicherns und Ladens von Daten.  
 * **Phase 4: Feinschliff & POI-Entdeckung**  
   * Implementierung des "Liquid Glass"-UI-Designs für alle relevanten Komponenten.  

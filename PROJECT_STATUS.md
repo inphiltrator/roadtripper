@@ -8,7 +8,7 @@
 
 ## ✅ STATUS: RESOLVED & OPERATIONAL
 
-The critical 500 Internal Server Error has been **successfully resolved**! The application is now running stable and all core functionality is operational.
+### 🛑 BLOCKER: Incomplete Google Maps API Integration\n\n**A strategic decision was made to switch from OpenRouteService to the Google Maps Routes API** due to the restrictive distance limits of the former. While the documentation has been updated to reflect this change, the implementation is **incomplete and currently broken**.\n\n*   **Vite Server:** The Vite development server is unstable and crashes when routing is attempted.\n*   **Root Cause:** The `EnhancedRoutingService` and the `/api/proxy/routing` endpoint were not correctly refactored for the Google Maps API, causing `TypeError` exceptions on the server.\n*   **Playwright Tests:** All routing-related tests are failing because of the server instability.\n\n**Next Step:** A GitHub issue will be created to track the work required to properly integrate the Google Maps Routes API and fix the failing tests.
 
 ### 🎉 Fixed Issues
 

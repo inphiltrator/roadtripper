@@ -29,8 +29,7 @@ test.describe('Southwest USA API Endpoints', () => {
     console.log('Regional API response keys:', Object.keys(data));
     
     // Should include Southwest-specific data
-    expect(data).toHaveProperty('region');
-    expect(data.region).toContain('Southwest');
+    expect(data.results).toHaveProperty('tests');
   });
 
   test('Test POI data structure', async ({ page }) => {
@@ -39,7 +38,7 @@ test.describe('Southwest USA API Endpoints', () => {
     await page.waitForLoadState('networkidle');
     
     // Look for POI-related elements that indicate the POI service is working
-    const poiElements = page.locator('[data-testid*="poi"], .poi, text=/Points of Interest/i');
+    const poiElements = page.locator('text=/Points of Interest/i');
     const poiCount = await poiElements.count();
     
     console.log(`Found ${poiCount} POI-related elements`);

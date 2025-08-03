@@ -47,7 +47,7 @@
       <div class="lg:col-span-1 space-y-4">
         <div class="glass-panel p-4">
           <h2 class="text-xl font-bold text-white mb-4">Plan Your Route</h2>
-          <form method="POST" action="?/default">
+          <form method="POST" action="?/calculateRoute">
             <div class="space-y-4">
               <div>
                 <label for="start" class="block text-sm font-medium text-white/80 mb-1">Start</label>

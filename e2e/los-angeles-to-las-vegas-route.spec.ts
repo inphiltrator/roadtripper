@@ -13,9 +13,15 @@ test('Los Angeles to Las Vegas route calculates and displays on map', async ({ p
   // Wait for the map to update with the route
   await page.waitForLoadState('networkidle');
 
+  page.on('console', msg => {
+    if (msg.type() === 'error') {
+      console.error(`Browser console error: ${msg.text()}`);
+    }
+  });
+
   // Verify the route is displayed on the map
   const mapContainer = page.locator('.map-container canvas');
-  await expect(mapContainer).toBeVisible();
+  await expect(mapContainer).toBeVisible({ timeout: 15000 });
 
   console.log('✅ Route from Los Angeles to Las Vegas is displayed on the map');
 });

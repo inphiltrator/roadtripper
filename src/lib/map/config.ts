@@ -22,31 +22,30 @@ export const DEFAULT_MAP_CONFIG: MapOptions = {
   logoPosition: 'bottom-right'
 };
 
-// Function to get Stadia Maps URL with API key
-function getStadiaMapUrl(styleUrl: string): string {
-  if (config.stadia.apiKey) {
-    const separator = styleUrl.includes('?') ? '&' : '?';
-    return `${styleUrl}${separator}api_key=${config.stadia.apiKey}`;
+// Function to get Mapbox Maps URL with API key
+function getMapboxMapUrl(styleUrl: string): string {
+  if (config.mapbox.accessToken) {
+    return `${styleUrl}?access_token=${config.mapbox.accessToken}`;
   }
   return styleUrl;
 }
 
-// Stadia Maps Configuration for Southwest USA
-export const STADIA_MAPS_CONFIG = {
+// Mapbox Maps Configuration for Southwest USA
+export const MAPBOX_MAPS_CONFIG = {
   // Outdoors style optimized for terrain visualization
   outdoors: {
-    url: getStadiaMapUrl('https://tiles.stadiamaps.com/styles/outdoors.json'),
+    url: getMapboxMapUrl('mapbox://styles/mapbox/outdoors-v12'),
     description: 'Terrain-focused style perfect for desert and mountain landscapes'
   },
   
   // Alternative styles for different use cases
   satellite: {
-    url: getStadiaMapUrl('https://tiles.stadiamaps.com/styles/satellite.json'),
+    url: getMapboxMapUrl('mapbox://styles/mapbox/satellite-v9'),
     description: 'Satellite imagery for detailed terrain inspection'
   },
   
-  alidade_smooth: {
-    url: getStadiaMapUrl('https://tiles.stadiamaps.com/styles/alidade_smooth.json'),
+  streets: {
+    url: getMapboxMapUrl('mapbox://styles/mapbox/streets-v12'),
     description: 'Clean style for urban areas and highways'
   }
 };
@@ -229,7 +228,7 @@ export function getSeasonalConfig(month: number) {
 export const SOUTHWEST_MAP_CONFIG = {
   bounds: SOUTHWEST_BOUNDS,
   defaults: DEFAULT_MAP_CONFIG,
-  stadia: STADIA_MAPS_CONFIG,
+  mapbox: MAPBOX_MAPS_CONFIG,
   performance: PERFORMANCE_CONFIG,
   layers: SOUTHWEST_LAYERS,
   markers: POI_MARKERS,
