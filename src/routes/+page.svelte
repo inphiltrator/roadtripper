@@ -1,13 +1,13 @@
 <script lang="ts">
   import SouthwestMap from '$lib/components/SouthwestMap.svelte';
-  import { onMount, afterUpdate } from 'svelte';
   import type { ActionData } from './$types';
 
-  export let form: ActionData;
+  let { form }: { form: ActionData } = $props();
 
   let mapComponent: SouthwestMap;
 
-  afterUpdate(() => {
+  // Use $effect instead of afterUpdate in Svelte 5
+  $effect(() => {
     if (form?.success && form.route && mapComponent) {
       mapComponent.drawRoute(form.route.geometry.coordinates);
     }
@@ -116,6 +116,12 @@
 
   .glass-panel {
     @apply bg-white/10 backdrop-blur-lg 
+           ring-1 ring-amber-500/20
+           shadow-2xl rounded-2xl;
+  }
+
+  .glass-panel-dark {
+    @apply bg-black/20 backdrop-blur-lg 
            ring-1 ring-amber-500/20
            shadow-2xl rounded-2xl;
   }
