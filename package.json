@@ -54,6 +54,7 @@
 		"@tailwindcss/typography": "^0.5.16",
 		"@types/maplibre-gl": "^1.13.2",
 		"@types/node": "^24.1.0",
+		"mapbox-gl": "^3.14.0",
 		"maplibre-gl": "^5.6.1",
 		"prisma": "^6.13.0",
 		"svelte-maplibre-gl": "^1.0.1"

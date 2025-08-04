@@ -1,11 +1,11 @@
 import { fail } from '@sveltejs/kit';
 import prisma from '$lib/server/prisma';
 import type { Actions, PageServerLoad } from './$types';
+import { MapBoxGeocodingService } from '$lib/services/MapBoxGeocodingService';
 
 const PERMANENT_USER_EMAIL = 'user@roadtripper.dev';
 
 export const load: PageServerLoad = async () => {
-  // Load the permanent user for the page
   const user = await prisma.user.findUnique({
     where: { email: PERMANENT_USER_EMAIL },
   });
@@ -16,7 +16,6 @@ export const load: PageServerLoad = async () => {
 
 export const actions: Actions = {
   calculateRoute: async ({ request, fetch }) => {
-    // 1. Get the permanent user directly from the database
     const user = await prisma.user.findUnique({
       where: { email: PERMANENT_USER_EMAIL },
     });
@@ -26,18 +25,32 @@ export const actions: Actions = {
     }
 
     const formData = await request.formData();
-    const start = formData.get('start') as string;
-    const end = formData.get('end') as string;
+    const startLocation = formData.get('start') as string;
+    const endLocation = formData.get('end') as string;
 
-    if (!start || !end) {
+    if (!startLocation || !endLocation) {
       return fail(400, { error: 'Start and end locations are required' });
     }
 
-    // 2. Fetch the route geometry
+    const geocodingService = new MapBoxGeocodingService();
+    const [startResults, endResults] = await Promise.all([
+      geocodingService.searchPlaces(startLocation, { limit: 1 }),
+      geocodingService.searchPlaces(endLocation, { limit: 1 }),
+    ]);
+
+    if (startResults.length === 0 || endResults.length === 0) {
+      return fail(400, { error: 'Could not find coordinates for one or both locations' });
+    }
+
+    const waypoints = [
+      { lat: startResults[0].coordinates[1], lng: startResults[0].coordinates[0], name: startLocation },
+      { lat: endResults[0].coordinates[1], lng: endResults[0].coordinates[0], name: endLocation },
+    ];
+
     const routeResponse = await fetch('/api/proxy/routing', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ start, end }),
+      body: JSON.stringify({ waypoints }),
     });
 
     if (!routeResponse.ok) {
@@ -47,21 +60,23 @@ export const actions: Actions = {
 
     const routeData = await routeResponse.json();
 
-    // 3. Save the new trip to the database for the permanent user
+    if (!routeData.routes || routeData.routes.length === 0) {
+        return fail(500, { error: 'No routes found between the specified locations' });
+    }
+
     try {
       const newTrip = await prisma.trip.create({
         data: {
-          name: `${start} to ${end}`,
+          name: `${startLocation} to ${endLocation}`,
           ownerId: user.id,
         },
       });
 
       console.log(`Trip saved with ID: ${newTrip.id}`);
 
-      // 4. Return the route data to the client
       return {
         success: true,
-        route: routeData,
+        route: routeData.routes[0], 
         tripId: newTrip.id,
       };
     } catch (error) {

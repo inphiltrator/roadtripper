@@ -21,7 +21,7 @@ test.describe('Trip Management', () => {
 
     // Verify the new trip is listed on the dashboard
     await expect(page).toHaveURL('/dashboard');
-    const tripEntry = page.locator(`h2:has-text("${tripName}")`);
+const tripEntry = page.locator(`h2:has-text("${tripName}")`).first();
     await expect(tripEntry).toBeVisible({ timeout: 15000 });
 
     console.log(`✅ Test successful: Verified that trip "${tripName}" was created and is visible on the dashboard.`);
