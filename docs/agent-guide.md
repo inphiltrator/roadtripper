@@ -18,7 +18,7 @@ Entwicklung eines selbst gehosteten Roadtrip-Planers speziell für die **Southwe
 |------------|------|--------------------------|
 | Frontend | SvelteKit + TypeScript | Strict mode, dateibasiertes Routing |
 | UI | Tailwind CSS | Liquid Glass Design mit backdrop-blur |
-| Karte | MapLibre GL JS | Via svelte-maplibre-gl wrapper |
+| Karte | Native Mapbox GL JS | Direkte Integration mit Access Token ✅ |
 | Tiles | Mapbox | Fokus auf Southwest USA Zoom-Level 5-18 |
 | Routing | Google Maps Routes API | Region-Filter für Southwest USA |
 | Geocoding | MapBox Geocoding API | Großzügiger Free Tier (100k requests/month), bessere Performance als Self-Hosting |
@@ -136,10 +136,10 @@ const SOUTHWEST_BOUNDS = [
 - MapBox Geocoding API Integration
 - MCP-Server Konfiguration
 
-### Phase 2: Karten-Integration (3 Tage)
-- MapLibre mit Southwest Bounds
-- Regionale Tile-Optimierung
-- Desert/Mountain Terrain Styles
+### Phase 2: Karten-Integration (3 Tage) ✅ ABGESCHLOSSEN
+- Native Mapbox GL JS mit Southwest Bounds ✅
+- Mapbox Styles (Outdoors) für Terrain-Visualisierung ✅
+- SouthwestMap-Komponente vollständig funktional ✅
 ### Phase 3: Routing (4 Tage)
 
 - Google Maps Routes API mit Region-Filter

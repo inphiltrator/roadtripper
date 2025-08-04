@@ -19,7 +19,7 @@ Die folgende Tabelle bietet eine konsolidierte Übersicht über die empfohlenen 
 | :---- | :---- | :---- |
 | Frontend Framework | SvelteKit | Erstklassige Performance und Developer Experience (DX), integriertes SSR und API-Routen. |
 | UI-Bibliothek | Tailwind CSS | Utility-First-Ansatz für schnelle, konsistente UI-Entwicklung und einfache Implementierung des "Liquid Glass"-Designs. |
-| Karten-Rendering | MapLibre GL JS | Hochleistungsfähiges, clientseitiges Rendering von Vektor-Kacheln mit WebGL für ein modernes, flüssiges Kartenerlebnis. |
+|| Karten-Rendering | Native Mapbox GL JS | Hochleistungsfähiges, clientseitiges Rendering mit direkter Mapbox-Integration ✅ |
 | Vektor-Kachel-Quelle | Mapbox | Hochwertige, aktuelle Vektor-Kacheln, die sich nahtlos in das Mapbox/MapLibre-Ökosystem integrieren. |
 | Routing-Engine | Google Maps Routes API | Branchenführende API für Langstrecken-Routing mit Echtzeit-Verkehrsdaten und Wegpunkt-Optimierung. |
 | Geocoding & POI-Suche | MapBox Geocoding API | Großzügiger Free Tier (100k Anfragen/Monat), exzellente Performance und Datenqualität, kein Self-Hosting erforderlich. |
