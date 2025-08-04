@@ -33,6 +33,11 @@
 - Ready for continued development and feature additions
 - Phase 4+ objectives completely achieved
 
+### 🟡 Current Issues Identified (Aug 4, 2025 20:34)
+- **Misleading Button Label:** "Calculate and Save Trip" should only display route, not save
+- **Route Not Displayed on Map:** API data retrieved successfully but route line not rendered on Mapbox map
+- Core functionality working end-to-end, remaining issues are UI/UX refinements
+
 ### 📋 Next Development Ready
 The Southwest USA Roadtripper is now ready for:
 - Route planning features
