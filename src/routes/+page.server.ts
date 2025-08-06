@@ -88,9 +88,53 @@ export const actions: Actions = {
         lastCoordinate: routeGeoJSON.geometry.coordinates[routeGeoJSON.geometry.coordinates.length - 1]
       });
 
+      // Fetch POIs along the route
+      let pois = [];
+      try {
+        const polyline = googleRoute.polyline?.encodedPolyline;
+        console.log('🔍 POI Search - Polyline available:', !!polyline);
+        console.log('🔍 POI Search - Polyline length:', polyline?.length || 0);
+        
+        if (polyline) {
+          console.log('🚀 Starting POI fetch request...');
+          
+          const poiResponse = await fetch('/api/proxy/pois-along-route', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              polyline,
+              radius: 10000, // 10km radius
+              categories: ['national_park', 'attraction', 'camping', 'lodging']
+            })
+          });
+          
+          console.log('🎯 POI Response status:', poiResponse.status);
+          
+          if (poiResponse.ok) {
+            const poiData = await poiResponse.json();
+            pois = poiData.pois || [];
+            console.log(`✅ Found ${pois.length} POIs along the route`);
+            console.log('📊 POI Response data:', {
+              success: poiData.success,
+              stats: poiData.stats,
+              firstPOI: pois[0] ? { name: pois[0].name, category: pois[0].category } : 'none'
+            });
+          } else {
+            const errorText = await poiResponse.text();
+            console.warn('❌ POI fetch failed:', poiResponse.status, errorText);
+          }
+        } else {
+          console.warn('⚠️ No polyline available for POI search');
+        }
+      } catch (error) {
+        console.error('💥 Error fetching POIs:', error);
+        // Don't fail the entire request if POIs fail
+      }
+
       return {
         success: true,
         route: routeGeoJSON,
+        pois,
         tripId: newTrip.id,
       };
     } catch (error) {

@@ -48,8 +48,12 @@ export const actions: Actions = {
       }
 
       const routeData = await response.json();
+      
+      // TODO: Re-enable POI integration after debugging
+      // Temporarily disabled POI loading to isolate server errors
+      const pois = [];
 
-      return { success: true, route: routeData };
+      return { success: true, route: routeData, pois };
     } catch (error: any) {
       return fail(500, { start: startAddress, destination: destinationAddress, error: error.message });
     }

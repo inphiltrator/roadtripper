@@ -2,11 +2,30 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Debug Trip Page', () => {
   test('should debug what is rendered on /trip page', async ({ page }) => {
-    // Navigate to the trip planning page
-    await page.goto('/simple-test');
+    // Track console errors and network errors
+    const consoleErrors: string[] = [];
+    const networkErrors: string[] = [];
     
-    // Wait for page to load
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+        console.log('Browser console ERROR:', msg.text());
+      }
+    });
+    
+    page.on('response', response => {
+      if (response.status() >= 400) {
+        networkErrors.push(`${response.status()} - ${response.url()}`);
+        console.log('Network error:', response.status(), response.url());
+      }
+    });
+    
+    // Navigate to the main page
+    await page.goto('/');
+    
+    // Wait for page to load and give Svelte time to hydrate
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(5000); // Wait longer for JS to load
     
     // Get page title to see what's actually loaded
     const title = await page.title();
@@ -45,14 +64,11 @@ test.describe('Debug Trip Page', () => {
     const currentUrl = page.url();
     console.log('Current URL:', currentUrl);
     
-    // Look for any error messages in the console
-    page.on('console', msg => console.log('Browser console:', msg.text()));
+    // Log error summary
+    console.log('Console errors found:', consoleErrors.length);
+    consoleErrors.forEach(err => console.log('  -', err));
     
-    // Check if there are any network errors
-    page.on('response', response => {
-      if (response.status() >= 400) {
-        console.log('Network error:', response.status(), response.url());
-      }
-    });
+    console.log('Network errors found:', networkErrors.length);
+    networkErrors.forEach(err => console.log('  -', err));
   });
 });
