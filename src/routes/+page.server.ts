@@ -2,6 +2,7 @@ import { fail } from '@sveltejs/kit';
 import prisma from '$lib/server/prisma';
 import type { Actions, PageServerLoad } from './$types';
 import { MapBoxGeocodingService } from '$lib/services/MapBoxGeocodingService';
+import { decodePolyline, routeToGeoJSON } from '$lib/utils/polyline';
 
 const PERMANENT_USER_EMAIL = 'user@roadtripper.dev';
 
@@ -74,9 +75,22 @@ export const actions: Actions = {
 
       console.log(`Trip saved with ID: ${newTrip.id}`);
 
+      // Convert Google Maps route to GeoJSON format for map display
+      const googleRoute = routeData.routes[0];
+      console.log('🔍 Google Route structure:', JSON.stringify(googleRoute, null, 2));
+      
+      const routeGeoJSON = routeToGeoJSON(googleRoute);
+      console.log('🗺️ Converted to GeoJSON:', {
+        type: routeGeoJSON.type,
+        geometryType: routeGeoJSON.geometry.type,
+        coordinatesLength: routeGeoJSON.geometry.coordinates.length,
+        firstCoordinate: routeGeoJSON.geometry.coordinates[0],
+        lastCoordinate: routeGeoJSON.geometry.coordinates[routeGeoJSON.geometry.coordinates.length - 1]
+      });
+
       return {
         success: true,
-        route: routeData.routes[0], 
+        route: routeGeoJSON,
         tripId: newTrip.id,
       };
     } catch (error) {

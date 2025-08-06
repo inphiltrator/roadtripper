@@ -11,7 +11,7 @@ test.describe('Main Route Functionality', () => {
     await expect(page.locator('h1')).toContainText('Southwest USA Roadtripper');
     await expect(page.locator('input[name="start"]')).toBeVisible();
     await expect(page.locator('input[name="end"]')).toBeVisible();
-    await expect(page.locator('button[type="submit"]')).toContainText('Calculate and Save Trip');
+    await expect(page.locator('button[type="submit"]')).toContainText('Show Route');
   });
 
   test('should handle form submission for LA to Vegas route', async ({ page }) => {

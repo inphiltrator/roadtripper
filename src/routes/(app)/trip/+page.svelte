@@ -3,8 +3,9 @@
   import mapboxgl from 'mapbox-gl';
   import 'mapbox-gl/dist/mapbox-gl.css';
   import type { ActionData } from './$types';
+  import { decodePolyline } from '$lib/utils/polyline';
 
-  export let form: ActionData;
+  let { form }: { form: ActionData } = $props();
 
   let mapContainer: HTMLElement;
   let map: mapboxgl.Map;
@@ -24,35 +25,47 @@
 
   $effect(() => {
     if (map && form?.success && form.route?.routes) {
-      const routeGeoJson = form.route.routes[0].polyline.geoJsonLinestring;
-
-      const bounds = new mapboxgl.LngLatBounds();
-      routeGeoJson.coordinates.forEach(point => bounds.extend(point));
-      map.fitBounds(bounds, { padding: 50 });
-
-      const source = map.getSource('route');
-      if (source) {
-        source.setData(routeGeoJson);
-      } else {
-        map.addSource('route', {
-          type: 'geojson',
-          data: routeGeoJson
-        });
-
-        map.addLayer({
-          id: 'route',
-          type: 'line',
-          source: 'route',
-          layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
+      const googleRoute = form.route.routes[0];
+      const coordinates = decodePolyline(googleRoute.polyline?.encodedPolyline || '');
+      
+      if (coordinates.length > 0) {
+        const routeGeoJson: GeoJSON.Feature<GeoJSON.LineString> = {
+          type: 'Feature',
+          geometry: {
+            type: 'LineString',
+            coordinates
           },
-          paint: {
-            'line-color': '#3887be',
-            'line-width': 5,
-            'line-opacity': 0.75
-          }
-        });
+          properties: {}
+        };
+
+        const bounds = new mapboxgl.LngLatBounds();
+        coordinates.forEach(point => bounds.extend(point));
+        map.fitBounds(bounds, { padding: 50 });
+
+        const source = map.getSource('route') as mapboxgl.GeoJSONSource;
+        if (source) {
+          source.setData(routeGeoJson);
+        } else {
+          map.addSource('route', {
+            type: 'geojson',
+            data: routeGeoJson
+          });
+
+          map.addLayer({
+            id: 'route',
+            type: 'line',
+            source: 'route',
+            layout: {
+              'line-join': 'round',
+              'line-cap': 'round'
+            },
+            paint: {
+              'line-color': '#3887be',
+              'line-width': 5,
+              'line-opacity': 0.75
+            }
+          });
+        }
       }
     }
   });

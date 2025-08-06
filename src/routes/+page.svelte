@@ -5,11 +5,28 @@
   let { form }: { form: ActionData } = $props();
 
   let mapComponent: SouthwestMap;
+  let mapReady = $state(false);
+
+  function onMapLoad() {
+    console.log('🗺️ Map loaded and ready');
+    mapReady = true;
+  }
 
   // Use $effect instead of afterUpdate in Svelte 5
   $effect(() => {
-    if (form?.success && form.route && mapComponent) {
-      mapComponent.drawRoute(form.route.geometry.coordinates);
+    if (form?.success && form.route && mapComponent && mapReady) {
+      console.log('🗺️ Route data received:', form.route);
+      console.log('🗺️ Route coordinates:', form.route.geometry?.coordinates);
+      
+      if (form.route.geometry?.coordinates) {
+        console.log('🗺️ Drawing route with coordinates:', form.route.geometry.coordinates.length, 'points');
+        // Small delay to ensure everything is ready
+        setTimeout(() => {
+          mapComponent.drawRoute(form.route.geometry.coordinates);
+        }, 100);
+      } else {
+        console.warn('⚠️ No coordinates found in route data');
+      }
     }
   });
 
@@ -74,7 +91,7 @@
                 id="calculate-route"
                 class="w-full glass-button px-4 py-2 font-bold"
               >
-                Calculate and Save Trip
+                Show Route
               </button>
             </div>
           </form>
@@ -93,6 +110,7 @@
       <div class="lg:col-span-2">
         <SouthwestMap
           bind:this={mapComponent}
+          onMapLoad={onMapLoad}
           onLocationClick={handleLocationClick}
           route={form?.route}
           class="h-96 lg:h-[600px]"

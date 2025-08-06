@@ -27,8 +27,8 @@ test.describe('Southwest Map Component', () => {
     
     console.log('✅ Specific Southwest region indicator visible');
     
-    // Check if map controls are present
-    const navigationControl = page.locator('.maplibregl-ctrl-group').first();
+    // Check if map controls are present (using Mapbox GL JS, not MapLibre)
+    const navigationControl = page.locator('.mapboxgl-ctrl-group').first();
     await expect(navigationControl).toBeVisible({ timeout: 5000 });
     
     console.log('✅ Map navigation controls loaded');

@@ -13,7 +13,7 @@ test.describe('Google Route Display Integration', () => {
     await page.fill('input[name="end"]', 'Las Vegas, NV');
 
     // Click the button to calculate the route
-    await page.click('button[type="submit"]:has-text("Calculate and Save Trip")');
+    await page.click('button[type="submit"]:has-text("Show Route")');
 
     // Wait for the form submission to complete
     await page.waitForLoadState('networkidle');

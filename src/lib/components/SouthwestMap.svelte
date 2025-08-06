@@ -29,6 +29,8 @@ let Map: any, NavigationControl: any;
   
   let mapContainer: HTMLDivElement;
   let map: Map | null = null;
+  let mapLoaded = $state(false);
+  let pendingRoute: [number, number][] | null = null;
   
   // Reactive state using Svelte 5 runes
   let center = $state(SOUTHWEST_MAP_CONFIG.defaults.center as [number, number]);
@@ -72,6 +74,13 @@ let Map: any, NavigationControl: any;
     
     map.on('load', () => {
       console.log('✅ Simple test map loaded successfully');
+      mapLoaded = true;
+
+      // Check if there is a pending route to draw
+      if (pendingRoute) {
+        drawRoute(pendingRoute);
+        pendingRoute = null;
+      }
     });
 
     map.on('error', (e) => {
@@ -124,7 +133,7 @@ let Map: any, NavigationControl: any;
   });
   
   $effect(() => {
-    if (map && route) {
+    if (mapLoaded && map && route) {
       updateRoute();
     }
   });
@@ -198,6 +207,72 @@ let Map: any, NavigationControl: any;
         'line-opacity': 0.8
       }
     });
+  }
+  
+  /**
+   * Draw route from coordinates array
+   * @param coordinates - Array of [lng, lat] coordinate pairs
+   */
+  export function drawRoute(coordinates: [number, number][]) {
+    console.log('🎯 drawRoute called with:', coordinates?.length, 'coordinates');
+    
+    if (!mapLoaded || !map) {
+      console.warn('⚠️ Map not initialized yet');
+      pendingRoute = coordinates;
+      return;
+    }
+    
+    if (!coordinates || coordinates.length === 0) {
+      console.warn('⚠️ No coordinates provided to drawRoute');
+      return;
+    }
+    
+    console.log('🔍 First few coordinates:', coordinates.slice(0, 3));
+    
+    // Create GeoJSON from coordinates
+    const routeGeoJSON: GeoJSON.Feature<GeoJSON.LineString> = {
+      type: 'Feature',
+      geometry: {
+        type: 'LineString',
+        coordinates
+      },
+      properties: {}
+    };
+    
+    console.log('📊 Created GeoJSON:', routeGeoJSON);
+    
+    // Remove existing route
+    if (map.getSource('route')) {
+      console.log('🗑️ Removing existing route');
+      map.removeLayer('route');
+      map.removeSource('route');
+    }
+    
+    // Add new route
+    console.log('➕ Adding new route source and layer');
+    map.addSource('route', {
+      type: 'geojson',
+      data: routeGeoJSON
+    });
+    
+    map.addLayer({
+      id: 'route',
+      type: 'line',
+      source: 'route',
+      paint: {
+        'line-color': '#FF6B35',
+        'line-width': 4,
+        'line-opacity': 0.8
+      }
+    });
+    
+    // Fit map to route bounds
+    console.log('🎯 Fitting map to route bounds');
+    const bounds = new mapboxgl.default.LngLatBounds();
+    coordinates.forEach(coord => bounds.extend(coord));
+    map.fitBounds(bounds, { padding: 50 });
+    
+    console.log('✅ Route drawing completed');
   }
 </script>
 
