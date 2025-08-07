@@ -9,27 +9,93 @@
 
   let mapComponent: SouthwestMap;
   let mapReady = $state(false);
-  let mapboxgl: any;
-  let mapInstance: any;
+  let mapboxgl = $state(null as any);
+  let mapInstance = $state(null as any);
   
-  // POI State Management
-  let selectedCategories: string[] = ['national_park', 'attraction', 'camping'];
-  let poiRadius = 10000; // 10km in meters
-  let showPOIPanel = $state(false);
+  // POI State Management  
+  let selectedCategories = $state(['restaurant', 'gas_station', 'hotel']); // Default to MapBox categories
+  let poiRadius = $state(10000); // 10km in meters
+  let showPOIPanel = $state(true); // Always show POI panel
   let poiMarkers: any[] = [];
+  let loadingPOIs = $state(false);
+  let hasLoadedInitialPOIs = $state(false); // Prevent infinite loop
   
-  // Extract POIs from form data (using $derived for Svelte 5 runes)
+  // Extract POIs from form data or default to Kanab-area POIs
   let availablePOIs = $derived(form?.pois || []);
   
   // Filter POIs based on selected categories
-  let filteredPOIs = $derived(availablePOIs.filter((poi: any) => 
-    selectedCategories.length === 0 || selectedCategories.includes(poi.category)
-  ));
+  let filteredPOIs = $derived(availablePOIs.filter((poi: any) => {
+    // If no categories selected, show all POIs
+    if (selectedCategories.length === 0) return true;
+    
+    // Debug logging for first POI to understand structure
+    if (availablePOIs.length > 0 && poi === availablePOIs[0]) {
+      console.log('🔍 POI structure for filtering:', {
+        name: poi.name,
+        category: poi.category,
+        categories: poi.categories,
+        poi_category: poi.poi_category,
+        selectedCategories
+      });
+    }
+    
+    // Check various category formats
+    return selectedCategories.some(cat => {
+      // Check if category is a string that matches exactly
+      if (typeof poi.category === 'string' && poi.category === cat) return true;
+      
+      // Check if category is an array that includes the selected category
+      if (Array.isArray(poi.category) && poi.category.includes(cat)) return true;
+      
+      // Check categories array (for MapBox API)
+      if (Array.isArray(poi.categories) && poi.categories.includes(cat)) return true;
+      
+      // Check poi_category array (for MapBox API)
+      if (Array.isArray(poi.poi_category) && poi.poi_category.includes(cat)) return true;
+      
+      // Check poi_category as string
+      if (typeof poi.poi_category === 'string' && poi.poi_category === cat) return true;
+      
+      return false;
+    });
+  }));
   
-  // Show POI panel when POIs are available
+  // Load default POIs around Kanab ONLY ONCE when first loading
   $effect(() => {
-    showPOIPanel = availablePOIs.length > 0;
+    if (availablePOIs.length === 0 && !loadingPOIs && !hasLoadedInitialPOIs) {
+      loadDefaultPOIs();
+    }
   });
+  
+  // Load POIs around Kanab, UT as default
+  async function loadDefaultPOIs() {
+    loadingPOIs = true;
+    hasLoadedInitialPOIs = true; // Mark as loaded to prevent infinite loop
+    try {
+      const response = await fetch('/api/pois/around-location', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: 'Kanab, UT',
+          radius: poiRadius,
+          categories: selectedCategories,
+          limit: 10
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Update form data to include default POIs
+        if (form) {
+          form.pois = data.pois || [];
+        }
+      }
+    } catch (error) {
+      console.error('Error loading default POIs:', error);
+    } finally {
+      loadingPOIs = false;
+    }
+  }
 
   onMount(async () => {
     if (typeof window !== 'undefined') {
@@ -63,7 +129,16 @@
   
   // Effect for POI markers
   $effect(() => {
+    console.log('🗺️ Marker effect triggered:', { 
+      mapInstance: !!mapInstance, 
+      mapboxgl: !!mapboxgl, 
+      filteredPOIsLength: filteredPOIs.length,
+      firstPOI: filteredPOIs[0] ? { name: filteredPOIs[0].name, coordinates: filteredPOIs[0].coordinates } : 'none'
+    });
+    
     if (mapInstance && mapboxgl && filteredPOIs.length > 0) {
+      console.log(`🎯 Adding ${filteredPOIs.length} POI markers to map`);
+      
       // Clear existing POI markers
       poiMarkers.forEach(marker => marker.remove());
       poiMarkers = [];
@@ -101,6 +176,12 @@
   // Helper function to get color for POI category
   function getCategoryColor(category: string): string {
     const colors = {
+      'restaurant': '#ef4444',     // red
+      'gas_station': '#6b7280',    // gray  
+      'hotel': '#06b6d4',          // cyan
+      'park': '#22c55e',          // green
+      'museum': '#8b5cf6',        // violet
+      'casino': '#f59e0b',        // amber
       'national_park': '#22c55e', // green
       'state_park': '#84cc16',    // lime
       'camping': '#f59e0b',       // amber
@@ -110,6 +191,19 @@
       'fuel': '#6b7280'          // gray
     };
     return colors[category as keyof typeof colors] || '#8b5cf6';
+  }
+  
+  // Helper function to get display name for categories
+  function getCategoryDisplayName(category: string): string {
+    const displayNames = {
+      'restaurant': '🍽️ Restaurants',
+      'gas_station': '⛽ Gas Stations', 
+      'hotel': '🏨 Hotels',
+      'park': '🏞️ Parks',
+      'museum': '🏛️ Museums',
+      'casino': '🎰 Casinos'
+    };
+    return displayNames[category as keyof typeof displayNames] || category;
   }
   
   // POI Event Handlers
@@ -182,8 +276,9 @@
     </div>
   </header>
 
+  <!-- Route Planning Section -->
   <div class="container mx-auto p-4">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
       <div class="lg:col-span-1 space-y-4">
         <div class="glass-panel p-4">
           <h2 class="text-xl font-bold text-white mb-4">Plan Your Route</h2>
@@ -196,7 +291,7 @@
                   name="start"
                   id="start"
                   class="w-full bg-black/20 text-white border border-white/20 rounded-lg p-2 focus:ring-amber-500 focus:border-amber-500"
-                  placeholder="e.g., Los Angeles, CA"
+                  placeholder="e.g., Kanab, UT"
                 />
               </div>
               <div>
@@ -206,7 +301,7 @@
                   name="end"
                   id="end"
                   class="w-full bg-black/20 text-white border border-white/20 rounded-lg p-2 focus:ring-amber-500 focus:border-amber-500"
-                  placeholder="e.g., Las Vegas, NV"
+                  placeholder="e.g., Fredonia, AZ"
                 />
               </div>
               <button
@@ -230,72 +325,124 @@
           {/if}
         </div>
       </div>
-      <div class="lg:col-span-2 relative">
+      
+      <!-- Map Section -->
+      <div class="lg:col-span-3 relative">
         <SouthwestMap
           bind:this={mapComponent}
           onMapLoad={onMapLoad}
           onLocationClick={handleLocationClick}
           route={form?.route}
-          class="h-96 lg:h-[600px]"
+          class="h-96 lg:h-[500px]"
         />
         
-        <!-- POI Filter Overlay (when POIs are available) -->
-        {#if showPOIPanel}
-          <div class="absolute top-4 left-4 right-4 lg:right-auto lg:w-80 z-20">
-            <POIFilter
-              selectedCategories={selectedCategories}
-              onCategoryToggle={handleCategoryToggle}
-              radius={poiRadius}
-              onRadiusChange={handleRadiusChange}
-              onApplyFilters={handleApplyFilters}
-              class="mb-4"
-            />
+        <!-- Success Notification -->
+        {#if form?.success}
+          <div class="absolute top-4 right-4 z-30 animate-fade-in">
+            <div class="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg">
+              ✅ Found {availablePOIs.length} POIs {form?.route ? 'along your route!' : 'around Kanab!'}
+            </div>
           </div>
         {/if}
       </div>
     </div>
+  </div>
+  
+  <!-- POI Section - Always Visible -->
+  <div class="container mx-auto px-4 pb-4">
+    <!-- Horizontal POI Filters -->
+    <div class="glass-panel p-4 mb-4">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <h3 class="text-lg font-semibold text-white">POI Filters</h3>
+          <span class="text-sm text-white/60">({filteredPOIs.length} locations)</span>
+        </div>
+        
+        <!-- Horizontal Category Filters -->
+        <div class="flex flex-wrap gap-2">
+          {#each ['restaurant', 'gas_station', 'hotel', 'park', 'museum', 'casino'] as category}
+            <button
+              type="button"
+              class="px-3 py-1 rounded-full text-sm transition-all duration-200 {
+                selectedCategories.includes(category) 
+                  ? 'bg-amber-500/80 text-white ring-2 ring-amber-400' 
+                  : 'bg-white/10 text-white/70 hover:bg-white/20'
+              }"
+              onclick={() => handleCategoryToggle(category)}
+            >
+              {getCategoryDisplayName(category)}
+            </button>
+          {/each}
+        </div>
+        
+        <!-- Radius Selector -->
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-white/70">Radius:</span>
+          <select
+            bind:value={poiRadius}
+            class="bg-black/20 text-white text-sm border border-white/20 rounded px-2 py-1"
+          >
+            <option value={5000}>5km</option>
+            <option value={10000}>10km</option>
+            <option value={20000}>20km</option>
+            <option value={50000}>50km</option>
+          </select>
+        </div>
+      </div>
+    </div>
     
-    <!-- POI Panel (when POIs are available) -->
-    {#if showPOIPanel}
-      <div class="container mx-auto p-4 pt-0">
-        <div class="glass-panel p-4">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-semibold text-white">Points of Interest</h2>
-            <div class="text-sm text-white/70">
-              {filteredPOIs.length} locations found along your route
-            </div>
-          </div>
-          
-          <div class="max-h-64 overflow-y-auto">
-            <GlassPOIPanel
-              pois={filteredPOIs.map(poi => ({
-                id: poi.id,
-                name: poi.name,
-                description: poi.description,
-                coordinates: poi.coordinates,
-                category: [poi.category],
-                rating: poi.rating,
-                distance: poi.distance / 1000, // Convert to km
-                tags: poi.properties?.isNationalPark ? ['national park'] : ['attraction']
-              }))}
-              onPOISelect={handlePOISelect}
-              selectedCategories={selectedCategories}
-              onCategoryFilter={(cats) => { selectedCategories = cats; }}
-              compact={true}
-              maxItems={20}
-              class="h-full"
-            />
-          </div>
+    <!-- POI Results Panel -->
+    <div class="glass-panel p-4">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-white">Points of Interest</h2>
+        <div class="text-sm text-white/70">
+          {#if loadingPOIs}
+            Loading POIs...
+          {:else}
+            {filteredPOIs.length} of {availablePOIs.length} locations 
+            {#if form?.route}
+              along your route
+            {:else}
+              around Kanab, UT
+            {/if}
+          {/if}
         </div>
       </div>
       
-      <!-- Success Notification -->
-      <div class="fixed top-20 right-4 z-30 animate-fade-in">
-        <div class="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg">
-          ✅ Found {availablePOIs.length} POIs along your route!
+      {#if loadingPOIs}
+        <div class="flex items-center justify-center h-32">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
+          <span class="ml-3 text-white/70">Loading POIs...</span>
         </div>
-      </div>
-    {/if}
+      {:else if filteredPOIs.length > 0}
+        <div class="max-h-80 overflow-y-auto">
+          <GlassPOIPanel
+            pois={filteredPOIs.slice(0, 10).map(poi => ({
+              id: poi.id,
+              name: poi.name,
+              description: poi.description || poi.address,
+              coordinates: poi.coordinates,
+              category: Array.isArray(poi.category) ? poi.category : [poi.category],
+              rating: poi.rating || 0,
+              distance: poi.distance ? poi.distance / 1000 : 0, // Convert to km
+              tags: poi.poi_category || [poi.category]
+            }))}
+            onPOISelect={handlePOISelect}
+            selectedCategories={selectedCategories}
+            onCategoryFilter={(cats) => { selectedCategories = cats; }}
+            compact={true}
+            maxItems={10}
+            class="h-full"
+          />
+        </div>
+      {:else}
+        <div class="text-center py-8 text-white/60">
+          <span class="text-4xl mb-2 block">🔍</span>
+          <p>No POIs found for the selected categories.</p>
+          <p class="text-sm mt-2">Try selecting different categories or increasing the search radius.</p>
+        </div>
+      {/if}
+    </div>
   </div>
 </main>
 

@@ -104,7 +104,7 @@ export const actions: Actions = {
             body: JSON.stringify({
               polyline,
               radius: 10000, // 10km radius
-              categories: ['national_park', 'attraction', 'camping', 'lodging']
+              categories: ['restaurant', 'gas_station', 'hotel'] // Match frontend defaults
             })
           });
           

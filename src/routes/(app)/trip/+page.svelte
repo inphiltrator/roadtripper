@@ -13,7 +13,7 @@
   let map: mapboxgl.Map;
   
   // POI State Management
-  let selectedCategories: string[] = ['national_park', 'attraction'];
+  let selectedCategories: string[] = ['restaurant', 'gas_station', 'hotel'];
   let poiRadius = 10000; // 10km in meters
   let filteredPOIs: any[] = [];
   let showPOIPanel = false;
@@ -131,13 +131,16 @@
   // Helper function to get color for POI category
   function getCategoryColor(category: string): string {
     const colors = {
-      'national_park': '#22c55e', // green
-      'state_park': '#84cc16',    // lime
-      'camping': '#f59e0b',       // amber
-      'dining': '#ef4444',        // red
-      'attraction': '#8b5cf6',    // violet
-      'lodging': '#06b6d4',       // cyan
-      'fuel': '#6b7280'          // gray
+      'restaurant': '#ef4444',     // red
+      'gas_station': '#6b7280',    // gray
+      'hotel': '#06b6d4',          // cyan
+      'national_park': '#22c55e',  // green
+      'state_park': '#84cc16',     // lime
+      'camping': '#f59e0b',        // amber
+      'dining': '#ef4444',         // red
+      'attraction': '#8b5cf6',     // violet
+      'lodging': '#06b6d4',        // cyan
+      'fuel': '#6b7280'           // gray
     };
     return colors[category as keyof typeof colors] || '#8b5cf6';
   }
@@ -193,31 +196,33 @@
   <div class="controls p-4 bg-gray-100 z-10">
     <h1 class="text-xl font-bold mb-4">Southwest USA Roadtripper</h1>
     <form method="POST">
-      <div class="flex space-x-4">
+      <div class="flex space-x-4 mb-4">
         <input type="text" name="start" placeholder="Start (e.g. Los Angeles)" class="p-2 border rounded w-full" required>
         <input type="text" name="destination" placeholder="Destination (e.g. Las Vegas)" class="p-2 border rounded w-full" required>
         <button type="submit" class="bg-blue-500 text-white p-2 rounded whitespace-nowrap">Calculate Route</button>
       </div>
     </form>
+    
+    <!-- POI Filter - Always visible after first route calculation -->
+    {#if form?.success}
+      <div class="border-t pt-4">
+        <POIFilter
+          selectedCategories={selectedCategories}
+          onCategoryToggle={handleCategoryToggle}
+          radius={poiRadius}
+          onRadiusChange={handleRadiusChange}
+          onApplyFilters={handleApplyFilters}
+          class="w-full"
+        />
+      </div>
+    {/if}
   </div>
   
   <!-- Main Content Area -->
   <div class="flex-grow flex flex-col lg:flex-row relative">
     <!-- Map Container -->
     <div class="map-container flex-grow relative" bind:this={mapContainer}>
-      <!-- POI Filter Overlay (Desktop: Top-left, Mobile: Top) -->
-      {#if showPOIPanel}
-        <div class="absolute top-4 left-4 right-4 lg:left-4 lg:right-auto lg:w-80 z-20">
-          <POIFilter
-            selectedCategories={selectedCategories}
-            onCategoryToggle={handleCategoryToggle}
-            radius={poiRadius}
-            onRadiusChange={handleRadiusChange}
-            onApplyFilters={handleApplyFilters}
-            class="mb-4"
-          />
-        </div>
-      {/if}
+      <!-- Map displays route and POI markers -->
     </div>
     
     <!-- POI Panel (Desktop: Right sidebar, Mobile: Bottom) -->

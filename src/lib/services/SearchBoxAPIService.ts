@@ -318,7 +318,7 @@ export class SearchBoxAPIService {
     radius?: number; // in meters, default 10km
     limit?: number; // default 50
   }): Promise<SearchBoxPOI[]> {
-    const { categories, routeCoordinates, radius = 10000, limit = 50 } = params;
+    const { categories, routeCoordinates, radius = 10000, limit = 10 } = params;
     
     if (!this.accessToken) {
       console.warn('Search Box API token not available');

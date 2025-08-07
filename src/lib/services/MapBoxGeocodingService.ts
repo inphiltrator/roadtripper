@@ -99,6 +99,33 @@ export class MapBoxGeocodingService {
   }
 
   /**
+   * Simple geocoding - get coordinates for a place name
+   */
+  async geocode(query: string): Promise<{ success: boolean; coordinates?: [number, number]; error?: string }> {
+    try {
+      const results = await this.searchPlaces(query, { limit: 1 });
+      
+      if (results.length === 0) {
+        return {
+          success: false,
+          error: `No results found for '${query}'`
+        };
+      }
+
+      return {
+        success: true,
+        coordinates: results[0].coordinates
+      };
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      return {
+        success: false,
+        error: `Failed to geocode '${query}'`
+      };
+    }
+  }
+
+  /**
    * Test the specific MapBox geocoding scenarios mentioned in requirements
    */
   async runGeocodingTests(): Promise<{
@@ -296,6 +323,21 @@ export class MapBoxGeocodingService {
           context: {
             place: 'Death Valley',
             region: 'California',
+            country: 'United States'
+          }
+        }
+      ],
+      'kanab, ut': [
+        {
+          id: 'test_kanab_ut',
+          name: 'Kanab',
+          address: 'Kanab, UT, USA',
+          coordinates: [-112.5263, 37.0475],
+          category: 'City/Town',
+          relevance: 1.0,
+          context: {
+            place: 'Kanab',
+            region: 'Utah',
             country: 'United States'
           }
         }
