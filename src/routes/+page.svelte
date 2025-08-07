@@ -257,7 +257,7 @@
   <meta name="description" content="Plan your perfect road trip through California, Nevada, Utah, and Arizona" />
 </svelte:head>
 
-<main class="min-h-screen desert-background">
+<main class="desert-background overflow-auto">
   <!-- Header -->
   <header class="glass-panel-dark border-b border-amber-500/20 p-4">
     <div class="container mx-auto">
@@ -333,7 +333,7 @@
           onMapLoad={onMapLoad}
           onLocationClick={handleLocationClick}
           route={form?.route}
-          class="h-96 lg:h-[500px]"
+          class="h-96 lg:h-[600px] min-h-[400px]"
         />
         
         <!-- Success Notification -->
@@ -349,7 +349,7 @@
   </div>
   
   <!-- POI Section - Always Visible -->
-  <div class="container mx-auto px-4 pb-4">
+  <div class="container mx-auto px-4 pb-8">
     <!-- Horizontal POI Filters -->
     <div class="glass-panel p-4 mb-4">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -415,7 +415,7 @@
           <span class="ml-3 text-white/70">Loading POIs...</span>
         </div>
       {:else if filteredPOIs.length > 0}
-        <div class="max-h-80 overflow-y-auto">
+        <div class="overflow-visible">
           <GlassPOIPanel
             pois={filteredPOIs.slice(0, 10).map(poi => ({
               id: poi.id,
@@ -444,18 +444,71 @@
       {/if}
     </div>
   </div>
+  
+  <!-- Additional Content Section to Ensure Scrollability -->
+  <div class="container mx-auto px-4 pb-16">
+    <div class="glass-panel p-6 mt-8">
+      <h2 class="text-xl font-bold text-white mb-4">🗺️ About Southwest USA Routes</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-white/80">
+        <div>
+          <h3 class="text-lg font-semibold text-white mb-2">🏞️ Popular Destinations</h3>
+          <ul class="space-y-1 text-sm">
+            <li>• Zion National Park, Utah</li>
+            <li>• Grand Canyon, Arizona</li>
+            <li>• Death Valley, California</li>
+            <li>• Antelope Canyon, Arizona</li>
+            <li>• Bryce Canyon, Utah</li>
+            <li>• Joshua Tree, California</li>
+            <li>• Monument Valley, Utah/Arizona</li>
+            <li>• Valley of Fire, Nevada</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-white mb-2">📍 Route Types</h3>
+          <ul class="space-y-1 text-sm">
+            <li>• Scenic Byways & Historic Routes</li>
+            <li>• National Park Connections</li>
+            <li>• Desert Photography Tours</li>
+            <li>• Cultural Heritage Trails</li>
+            <li>• Adventure Sports Access</li>
+            <li>• Geology & Nature Study</li>
+            <li>• Stargazing Locations</li>
+            <li>• Film & TV Location Sites</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="mt-8 p-4 bg-white/10 rounded-lg">
+        <h3 class="text-lg font-semibold text-white mb-3">💡 Trip Planning Tips</h3>
+        <div class="text-sm text-white/80 space-y-2">
+          <p><strong>Best Time:</strong> Spring (March-May) and Fall (September-November) offer ideal weather.</p>
+          <p><strong>Fuel Strategy:</strong> Gas stations can be sparse - always fuel up when available.</p>
+          <p><strong>Weather:</strong> Check conditions - desert weather can change rapidly.</p>
+          <p><strong>Permits:</strong> Some areas require advance reservations or permits.</p>
+          <p><strong>Supplies:</strong> Carry extra water, food, and emergency supplies.</p>
+          <p><strong>Navigation:</strong> Download offline maps - cell service can be limited.</p>
+        </div>
+      </div>
+      
+      <div class="mt-6 text-center">
+        <p class="text-white/60 text-sm">Plan your adventure responsibly and enjoy the stunning Southwest!</p>
+      </div>
+    </div>
+  </div>
 </main>
 
 <style>
   .desert-background {
-    background: linear-gradient(
-      135deg,
-      #1a1a2e 0%,
-      #16213e 25%,
-      #0f3460 75%,
-      #533a2c 100%
-    );
+    background-color: #ffaf45;
+    background-image: radial-gradient(at 13% 54%, #ffaf45 0%, transparent 60%), 
+                      radial-gradient(at 13% 75%, #fb6d48 0%, transparent 50%), 
+                      radial-gradient(at 44% 80%, #d74b76 0%, transparent 40%), 
+                      radial-gradient(at 24% 38%, #673f69 0%, transparent 30%);
     min-height: 100vh;
+    background-attachment: fixed;
+    background-size: 100% 100%;
+    /* Allow content to extend beyond viewport and be scrollable */
+    height: auto;
   }
 
   .glass-panel {
